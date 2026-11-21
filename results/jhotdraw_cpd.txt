@@ -1,0 +1,4420 @@
+Found a 76 line (534 tokens) duplication in the following files: 
+Starting at line 132 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 117 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+    @Override
+    public void repaintHandles() {
+        validateHandles();
+        Rectangle r = null;
+        for (Handle h : getSelectionHandles()) {
+            if (r == null) {
+                r = h.getDrawingArea();
+            } else {
+                r.add(h.getDrawingArea());
+            }
+        }
+        for (Handle h : getSecondaryHandles()) {
+            if (r == null) {
+                r = h.getDrawingArea();
+            } else {
+                r.add(h.getDrawingArea());
+            }
+        }
+        if (r != null) {
+            repaint(r);
+        }
+    }
+
+    /**
+     * Draws the background of the drawing view.
+     */
+    protected void drawBackground(Graphics2D g) {
+        if (drawing == null) {
+            // there is no drawing and thus no canvas
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+        } else if (drawing.get(CANVAS_WIDTH) == null
+                || drawing.get(CANVAS_HEIGHT) == null) {
+            // the canvas is infinitely large
+            Color canvasColor = drawing.get(CANVAS_FILL_COLOR);
+            double canvasOpacity = drawing.get(CANVAS_FILL_OPACITY);
+            if (canvasColor != null) {
+                if (canvasOpacity == 1) {
+                    g.setColor(new Color(canvasColor.getRGB()));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                } else {
+                    Point r = drawingToView(new Point2D.Double(0, 0));
+                    g.setPaint(getBackgroundPaint(r.x, r.y));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                    g.setColor(new Color(canvasColor.getRGB() & 0xfffff | ((int) (canvasOpacity * 256) << 24), true));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+            } else {
+                Point r = drawingToView(new Point2D.Double(0, 0));
+                g.setPaint(getBackgroundPaint(r.x, r.y));
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        } else {
+            // the canvas has a fixed size
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+            Rectangle r = drawingToView(new Rectangle2D.Double(0, 0, drawing.get(CANVAS_WIDTH),
+                    drawing.get(CANVAS_HEIGHT)));
+            g.setPaint(getBackgroundPaint(r.x, r.y));
+            g.fillRect(r.x, r.y, r.width, r.height);
+        }
+    }
+
+    @Override
+    public boolean isSelectionEmpty() {
+        return selectedFigures.isEmpty();
+    }
+
+    private class EventHandler implements FigureListener, CompositeFigureListener, HandleListener, FocusListener {
+
+        @Override
+        public void figureAdded(CompositeFigureEvent evt) {
+            if (drawing.getChildCount() == 1 && getEmptyDrawingMessage() != null) {
+                repaint();
+            } else {
+                repaintDrawingArea(evt.getCompositeFigure().getDrawingArea(AttributeKeys.getScaleFactor(getDrawingToViewTransform())));
+
+=====================================================================
+Found a 72 line (459 tokens) duplication in the following files: 
+Starting at line 200 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedCompositeFigure.java
+Starting at line 189 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedFigure.java
+
+        AbstractAttributedCompositeFigure that = (AbstractAttributedCompositeFigure) super.clone();
+        that.attributes = new HashMap<>(this.attributes);
+        if (this.forbiddenAttributes != null) {
+            that.forbiddenAttributes = new HashSet<>(this.forbiddenAttributes);
+        }
+        return that;
+    }
+
+    protected void writeAttributes(DOMOutput out) throws IOException {
+        Figure prototype = (Figure) out.getPrototype();
+        boolean isElementOpen = false;
+        for (Map.Entry<AttributeKey<?>, Object> entry : attributes.entrySet()) {
+            AttributeKey<?> key = entry.getKey();
+            if (forbiddenAttributes == null || !forbiddenAttributes.contains(key)) {
+                @SuppressWarnings("unchecked")
+                Object prototypeValue = prototype.get(key);
+                @SuppressWarnings("unchecked")
+                Object attributeValue = get(key);
+                if (prototypeValue != attributeValue
+                        || (prototypeValue != null && attributeValue != null
+                        && !prototypeValue.equals(attributeValue))) {
+                    if (!isElementOpen) {
+                        out.openElement("a");
+                        isElementOpen = true;
+                    }
+                    out.openElement(key.getKey());
+                    out.writeObject(entry.getValue());
+                    out.closeElement();
+                }
+            }
+        }
+        if (isElementOpen) {
+            out.closeElement();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void readAttributes(DOMInput in) throws IOException {
+        if (in.getElementCount("a") > 0) {
+            in.openElement("a");
+            for (int i = 0, n = in.getElementCount(); i < n; i++) {
+                in.openElement(i);
+                String name = in.getTagName();
+                Object value = in.readObject();
+                AttributeKey<?> key = getAttributeKey(name);
+                if (key != null && key.isAssignable(value)) {
+                    if (forbiddenAttributes == null || !forbiddenAttributes.contains(key)) {
+                        set((AttributeKey<Object>) key, value);
+                    }
+                }
+                in.closeElement();
+            }
+            in.closeElement();
+        }
+    }
+
+    protected AttributeKey<?> getAttributeKey(String name) {
+        return AttributeKeys.SUPPORTED_ATTRIBUTES_MAP.get(name);
+    }
+
+    /**
+     * Applies all attributes of this figure to that figure.
+     */
+    @SuppressWarnings("unchecked")
+    protected void applyAttributesTo(Figure that) {
+        for (Map.Entry<AttributeKey<?>, Object> entry : attributes.entrySet()) {
+            that.set((AttributeKey<Object>) entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public void write(DOMOutput out) throws IOException {
+
+=====================================================================
+Found a 93 line (420 tokens) duplication in the following files: 
+Starting at line 512 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 746 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+        Set<Figure> oldSelection = new HashSet<>(selectedFigures);
+        if (selectedFigures.add(figure)) {
+            figure.addFigureListener(handleInvalidator);
+            Set<Figure> newSelection = new HashSet<>(selectedFigures);
+            Rectangle invalidatedArea = null;
+            if (handlesAreValid && getEditor() != null) {
+                for (Handle h : figure.createHandles(detailLevel)) {
+                    h.setView(this);
+                    selectionHandles.add(h);
+                    h.addHandleListener(eventHandler);
+                    if (invalidatedArea == null) {
+                        invalidatedArea = h.getDrawingArea();
+                    } else {
+                        invalidatedArea.add(h.getDrawingArea());
+                    }
+                }
+            }
+            fireSelectionChanged(oldSelection, newSelection);
+            if (invalidatedArea != null) {
+                repaint(invalidatedArea);
+            }
+        }
+    }
+
+    /**
+     * Adds a collection of figures to the current selection.
+     */
+    @Override
+    public void addToSelection(Collection<Figure> figures) {
+        Set<Figure> oldSelection = new HashSet<>(selectedFigures);
+        Set<Figure> newSelection = new HashSet<>(selectedFigures);
+        boolean selectionChanged = false;
+        Rectangle invalidatedArea = null;
+        for (Figure figure : figures) {
+            if (selectedFigures.add(figure)) {
+                selectionChanged = true;
+                newSelection.add(figure);
+                figure.addFigureListener(handleInvalidator);
+                if (handlesAreValid && getEditor() != null) {
+                    for (Handle h : figure.createHandles(detailLevel)) {
+                        h.setView(this);
+                        selectionHandles.add(h);
+                        h.addHandleListener(eventHandler);
+                        if (invalidatedArea == null) {
+                            invalidatedArea = h.getDrawingArea();
+                        } else {
+                            invalidatedArea.add(h.getDrawingArea());
+                        }
+                    }
+                }
+            }
+        }
+        if (selectionChanged) {
+            fireSelectionChanged(oldSelection, newSelection);
+            if (invalidatedArea != null) {
+                repaint(invalidatedArea);
+            }
+        }
+    }
+
+    /**
+     * Removes a figure from the selection.
+     */
+    @Override
+    public void removeFromSelection(Figure figure) {
+        Set<Figure> oldSelection = new HashSet<>(selectedFigures);
+        if (selectedFigures.remove(figure)) {
+            Set<Figure> newSelection = new HashSet<>(selectedFigures);
+            invalidateHandles();
+            figure.removeFigureListener(handleInvalidator);
+            fireSelectionChanged(oldSelection, newSelection);
+            repaint();
+        }
+    }
+
+    /**
+     * If a figure isn't selected it is added to the selection. Otherwise it is removed from the
+     * selection.
+     */
+    @Override
+    public void toggleSelection(Figure figure) {
+        if (selectedFigures.contains(figure)) {
+            removeFromSelection(figure);
+        } else {
+            addToSelection(figure);
+        }
+    }
+
+    /**
+     * Selects all selectable figures.
+     */
+    @Override
+    public void selectAll() {
+
+=====================================================================
+Found a 58 line (340 tokens) duplication in the following files: 
+Starting at line 42 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/ElbowLiner.java
+Starting at line 42 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/SlantedLiner.java
+
+        this.shoulderSize = slantSize;
+    }
+
+    @Override
+    public Collection<Handle> createHandles(BezierPath path) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void lineout(ConnectionFigure figure) {
+        BezierPath path = ((LineConnectionFigure) figure).getBezierPath();
+        Connector start = figure.getStartConnector();
+        Connector end = figure.getEndConnector();
+        if (start == null || end == null || path == null) {
+            return;
+        }
+        // Special treatment if the connection connects the same figure
+        if (figure.getStartFigure() == figure.getEndFigure()) {
+            // Ensure path has exactly four nodes
+            while (path.size() < 5) {
+                path.add(1, new BezierPath.Node(0, 0));
+            }
+            while (path.size() > 5) {
+                path.remove(1);
+            }
+            Point2D.Double sp = start.findStart(figure);
+            Point2D.Double ep = end.findEnd(figure);
+            Rectangle2D.Double sb = start.getBounds();
+            Rectangle2D.Double eb = end.getBounds();
+            int soutcode = sb.outcode(sp);
+            if (soutcode == 0) {
+                soutcode = Geom.outcode(sb, eb);
+            }
+            int eoutcode = eb.outcode(ep);
+            if (eoutcode == 0) {
+                eoutcode = Geom.outcode(sb, eb);
+            }
+            path.get(0).moveTo(sp);
+            path.get(path.size() - 1).moveTo(ep);
+            switch (soutcode) {
+                case Geom.OUT_TOP:
+                    eoutcode = Geom.OUT_LEFT;
+                    break;
+                case Geom.OUT_RIGHT:
+                    eoutcode = Geom.OUT_TOP;
+                    break;
+                case Geom.OUT_BOTTOM:
+                    eoutcode = Geom.OUT_RIGHT;
+                    break;
+                case Geom.OUT_LEFT:
+                    eoutcode = Geom.OUT_BOTTOM;
+                    break;
+                default:
+                    eoutcode = Geom.OUT_TOP;
+                    soutcode = Geom.OUT_RIGHT;
+                    break;
+            }
+            path.get(1).moveTo(sp.x + shoulderSize, sp.y);
+
+=====================================================================
+Found a 51 line (323 tokens) duplication in the following files: 
+Starting at line 358 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/GraphicalCompositeFigure.java
+Starting at line 206 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedCompositeFigure.java
+Starting at line 195 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedFigure.java
+
+    }
+
+    protected void writeAttributes(DOMOutput out) throws IOException {
+        Figure prototype = (Figure) out.getPrototype();
+        boolean isElementOpen = false;
+        for (Map.Entry<AttributeKey<?>, Object> entry : attributes.entrySet()) {
+            AttributeKey<?> key = entry.getKey();
+            if (forbiddenAttributes == null
+                    || !forbiddenAttributes.contains(key)) {
+                @SuppressWarnings("unchecked")
+                Object prototypeValue = prototype.get(key);
+                @SuppressWarnings("unchecked")
+                Object attributeValue = get(key);
+                if (prototypeValue != attributeValue
+                        || (prototypeValue != null && attributeValue != null
+                        && !prototypeValue.equals(attributeValue))) {
+                    if (!isElementOpen) {
+                        out.openElement("a");
+                        isElementOpen = true;
+                    }
+                    out.openElement(key.getKey());
+                    out.writeObject(entry.getValue());
+                    out.closeElement();
+                }
+            }
+        }
+        if (isElementOpen) {
+            out.closeElement();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void readAttributes(DOMInput in) throws IOException {
+        if (in.getElementCount("a") > 0) {
+            in.openElement("a");
+            for (int i = 0, n = in.getElementCount(); i < n; i++) {
+                in.openElement(i);
+                String name = in.getTagName();
+                Object value = in.readObject();
+                AttributeKey<?> key = getAttributeKey(name);
+                if (key != null && key.isAssignable(value)) {
+                    if (forbiddenAttributes == null
+                            || !forbiddenAttributes.contains(key)) {
+                        set((AttributeKey<Object>) key, value);
+                    }
+                }
+                in.closeElement();
+            }
+            in.closeElement();
+        }
+    }
+
+=====================================================================
+Found a 26 line (288 tokens) duplication in the following files: 
+Starting at line 381 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+Starting at line 478 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+    protected void drawDrawingVolatileBuffered(Graphics2D g) {
+        Rectangle vr = getVisibleRect();
+        Point shift = new Point(0, 0);
+        if (bufferedArea.contains(vr)
+                || bufferedArea.width >= vr.width && bufferedArea.height >= vr.height) {
+            // The visible rect fits into the buffered area, but may be shifted; shift the buffered area.
+            shift.x = bufferedArea.x - vr.x;
+            shift.y = bufferedArea.y - vr.y;
+            if (shift.x > 0) {
+                dirtyArea.add(new Rectangle(bufferedArea.x - shift.x, vr.y, shift.x + bufferedArea.width - vr.width, bufferedArea.height));
+            } else if (shift.x < 0) {
+                dirtyArea.add(new Rectangle(bufferedArea.x + vr.width, vr.y, -shift.x + bufferedArea.width - vr.width, bufferedArea.height));
+            }
+            if (shift.y > 0) {
+                dirtyArea.add(new Rectangle(vr.x, bufferedArea.y - shift.y, bufferedArea.width, shift.y + bufferedArea.height - vr.height));
+            } else if (shift.y < 0) {
+                dirtyArea.add(new Rectangle(vr.x, bufferedArea.y + vr.height, bufferedArea.width, -shift.y + bufferedArea.height - vr.height));
+            }
+            bufferedArea.x = vr.x;
+            bufferedArea.y = vr.y;
+        } else {
+            // The buffered drawing area does not match the visible rect;
+            // resize it, and mark everything as dirty.
+            bufferedArea.setBounds(vr);
+            dirtyArea.setBounds(vr);
+            if (drawingBufferV != null
+
+=====================================================================
+Found a 63 line (271 tokens) duplication in the following files: 
+Starting at line 668 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 908 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+    private List<Handle> getSecondaryHandles() {
+        validateHandles();
+        return Collections.unmodifiableList(secondaryHandles);
+    }
+
+    /**
+     * Invalidates the handles.
+     */
+    private void invalidateHandles() {
+        if (handlesAreValid) {
+            handlesAreValid = false;
+            Rectangle invalidatedArea = null;
+            for (Handle handle : selectionHandles) {
+                handle.removeHandleListener(eventHandler);
+                if (invalidatedArea == null) {
+                    invalidatedArea = handle.getDrawingArea();
+                } else {
+                    invalidatedArea.add(handle.getDrawingArea());
+                }
+                handle.dispose();
+            }
+            for (Handle handle : secondaryHandles) {
+                handle.removeHandleListener(eventHandler);
+                if (invalidatedArea == null) {
+                    invalidatedArea = handle.getDrawingArea();
+                } else {
+                    invalidatedArea.add(handle.getDrawingArea());
+                }
+                handle.dispose();
+            }
+            selectionHandles.clear();
+            secondaryHandles.clear();
+            setActiveHandle(null);
+            if (invalidatedArea != null) {
+                repaint(invalidatedArea);
+            }
+        }
+    }
+
+    /**
+     * Validates the handles.
+     */
+    private void validateHandles() {
+        // Validate handles only, if they are invalid, and if
+        // the DrawingView has a DrawingEditor.
+        if (!handlesAreValid && getEditor() != null) {
+            handlesAreValid = true;
+            selectionHandles.clear();
+            Rectangle invalidatedArea = null;
+            while (true) {
+                for (Figure figure : getSelectedFigures()) {
+                    for (Handle handle : figure.createHandles(detailLevel)) {
+                        handle.setView(this);
+                        selectionHandles.add(handle);
+                        handle.addHandleListener(eventHandler);
+                        if (invalidatedArea == null) {
+                            invalidatedArea = handle.getDrawingArea();
+                        } else {
+                            invalidatedArea.add(handle.getDrawingArea());
+                        }
+                    }
+                }
+                if (selectionHandles.isEmpty() && detailLevel != 0) {
+
+=====================================================================
+Found a 38 line (237 tokens) duplication in the following files: 
+Starting at line 136 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/ImageFigure.java
+Starting at line 73 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/RectangleFigure.java
+
+    public boolean figureContains(Point2D.Double p) {
+        Rectangle2D.Double r = (Rectangle2D.Double) rectangle.clone();
+        double grow = AttributeKeys.getPerpendicularHitGrowth(this, 1.0) + 1d;
+        Geom.grow(r, grow, grow);
+        return r.contains(p);
+    }
+
+    @Override
+    public void setBounds(Point2D.Double anchor, Point2D.Double lead) {
+        rectangle.x = Math.min(anchor.x, lead.x);
+        rectangle.y = Math.min(anchor.y, lead.y);
+        rectangle.width = Math.max(0.1, Math.abs(lead.x - anchor.x));
+        rectangle.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Transforms the figure.
+     *
+     * @param tx The transformation.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead));
+    }
+
+    // ATTRIBUTES
+    @Override
+    public void restoreTransformTo(Object geometry) {
+        rectangle.setRect((Rectangle2D.Double) geometry);
+    }
+
+    @Override
+    public Object getTransformRestoreData() {
+        return (Rectangle2D.Double) rectangle.clone();
+
+=====================================================================
+Found a 65 line (223 tokens) duplication in the following files: 
+Starting at line 730 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 970 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+                if (selectionHandles.isEmpty() && detailLevel != 0) {
+                    // No handles are available at the desired detail level.
+                    // Retry with detail level 0.
+                    detailLevel = 0;
+                    continue;
+                }
+                break;
+            }
+            if (invalidatedArea != null) {
+                repaint(invalidatedArea);
+            }
+        }
+    }
+
+    /**
+     * Finds a handle at a given coordinates.
+     *
+     * @return A handle, null if no handle is found.
+     */
+    @Override
+    public Handle findHandle(
+            Point p) {
+        validateHandles();
+        for (Handle handle : new ReversedList<>(getSecondaryHandles())) {
+            if (handle.contains(p)) {
+                return handle;
+            }
+        }
+        for (Handle handle : new ReversedList<>(getSelectionHandles())) {
+            if (handle.contains(p)) {
+                return handle;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets compatible handles.
+     *
+     * @return A collection containing the handle and all compatible handles.
+     */
+    @Override
+    public Collection<Handle> getCompatibleHandles(Handle master) {
+        validateHandles();
+        HashSet<Figure> owners = new HashSet<>();
+        LinkedList<Handle> compatibleHandles = new LinkedList<>();
+        owners.add(master.getOwner());
+        compatibleHandles.add(master);
+        for (Handle handle : getSelectionHandles()) {
+            if (!owners.contains(handle.getOwner()) && handle.isCombinableWith(master)) {
+                owners.add(handle.getOwner());
+                compatibleHandles.add(handle);
+            }
+        }
+        return compatibleHandles;
+    }
+
+    /**
+     * Finds a figure at a given coordinates.
+     *
+     * @return A figure, null if no figure is found.
+     */
+    @Override
+    public Figure findFigure(Point p) {
+        return drawing == null ? null : drawing.findFigure(viewToDrawing(p));
+
+=====================================================================
+Found a 28 line (217 tokens) duplication in the following files: 
+Starting at line 389 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 443 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(r.x, Math.min(r.y + r.height - 1, p.y)),
+                    new Point2D.Double(r.x + r.width, r.y + r.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    transform(
+                            new Point2D.Double(r.x, r.y - 1),
+                            new Point2D.Double(r.x + r.width, r.y + r.height));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    if (r.height > 1) {
+                        transform(
+                                new Point2D.Double(r.x, r.y + 1),
+                                new Point2D.Double(r.x + r.width, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 39 line (213 tokens) duplication in the following files: 
+Starting at line 447 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 649 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+                g.setTransform(tx);
+                drawing.setFontRenderContext(g.getFontRenderContext());
+                drawing.draw(g);
+                g.dispose();
+            }
+        }
+    }
+
+    protected void drawHandles(java.awt.Graphics2D g) {
+        if (editor != null && editor.getActiveView() == this) {
+            validateHandles();
+            for (Handle h : getSelectionHandles()) {
+                h.draw(g);
+            }
+            for (Handle h : getSecondaryHandles()) {
+                h.draw(g);
+            }
+        }
+    }
+
+    protected void drawTool(Graphics2D g) {
+        if (editor != null && editor.getActiveView() == this && editor.getTool() != null) {
+            editor.getTool().draw(g);
+        }
+    }
+
+    @Override
+    public void setDrawing(Drawing newValue) {
+        Drawing oldValue = drawing;
+        if (this.drawing != null) {
+            this.drawing.removeCompositeFigureListener(eventHandler);
+            this.drawing.removeFigureListener(eventHandler);
+            clearSelection();
+        }
+        this.drawing = newValue;
+        if (this.drawing != null) {
+            this.drawing.addCompositeFigureListener(eventHandler);
+            this.drawing.addFigureListener(eventHandler);
+        }
+
+=====================================================================
+Found a 28 line (209 tokens) duplication in the following files: 
+Starting at line 567 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 621 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(r.x, r.y),
+                    new Point2D.Double(r.x + r.width, Math.max(r.y + 1, p.y)));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    if (r.height > 1) {
+                        transform(
+                                new Point2D.Double(r.x, r.y),
+                                new Point2D.Double(r.x + r.width, r.y + r.height - 1));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    transform(
+                            new Point2D.Double(r.x, r.y),
+                            new Point2D.Double(r.x + r.width, r.y + r.height + 1));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 19 line (206 tokens) duplication in the following files: 
+Starting at line 64 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 162 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+        double grow = AttributeKeys.getPerpendicularFillGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
+        if (grow != 0d) {
+            double w = r.width / 2d;
+            double h = r.height / 2d;
+            double lineLength = Math.sqrt(w * w + h * h);
+            double scale = grow / lineLength;
+            double yb = scale * w;
+            double xa = scale * h;
+            double growx, growy;
+            growx = ((yb * yb) / xa + xa);
+            growy = ((xa * xa) / yb + yb);
+            Geom.grow(r, growx, growy);
+        }
+        Path2D.Double diamond = new Path2D.Double();
+        diamond.moveTo((r.x + r.width / 2), r.y);
+        diamond.lineTo((r.x + r.width), (r.y + r.height / 2));
+        diamond.lineTo((r.x + r.width / 2), (r.y + r.height));
+        diamond.lineTo(r.x, (r.y + r.height / 2));
+        diamond.closePath();
+
+=====================================================================
+Found a 49 line (203 tokens) duplication in the following files: 
+Starting at line 688 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractCompositeFigure.java
+Starting at line 381 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/LabeledLineConnectionFigure.java
+
+        return (Rectangle2D.Double) cachedBounds.clone();
+    }
+
+    /**
+     * Notify all listenerList that have registered interest for
+     * notification on this event type.
+     */
+    protected void fireFigureAdded(Figure f, int zIndex) {
+        CompositeFigureEvent event = null;
+        // Notify all listeners that have registered interest for
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == CompositeFigureListener.class) {
+                // Lazily create the event:
+                if (event == null) {
+                    event = new CompositeFigureEvent(this, f, f.getDrawingArea(), zIndex);
+                }
+                ((CompositeFigureListener) listeners[i + 1]).figureAdded(event);
+            }
+        }
+    }
+
+    /**
+     * Notify all listenerList that have registered interest for
+     * notification on this event type.
+     */
+    protected void fireFigureRemoved(Figure f, int zIndex) {
+        CompositeFigureEvent event = null;
+        // Notify all listeners that have registered interest for
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == CompositeFigureListener.class) {
+                // Lazily create the event:
+                if (event == null) {
+                    event = new CompositeFigureEvent(this, f, f.getDrawingArea(), zIndex);
+                }
+                ((CompositeFigureListener) listeners[i + 1]).figureRemoved(event);
+            }
+        }
+    }
+
+    @Override
+    public void removeCompositeFigureListener(CompositeFigureListener listener) {
+
+=====================================================================
+Found a 37 line (200 tokens) duplication in the following files: 
+Starting at line 64 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/CurvedLiner.java
+Starting at line 64 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/ElbowLiner.java
+Starting at line 64 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/SlantedLiner.java
+
+            while (path.size() > 4) {
+                path.remove(1);
+            }
+            Point2D.Double sp = start.findStart(figure);
+            Point2D.Double ep = end.findEnd(figure);
+            Rectangle2D.Double sb = start.getBounds();
+            Rectangle2D.Double eb = end.getBounds();
+            int soutcode = sb.outcode(sp);
+            if (soutcode == 0) {
+                soutcode = Geom.outcode(sb, eb);
+            }
+            int eoutcode = eb.outcode(ep);
+            if (eoutcode == 0) {
+                eoutcode = Geom.outcode(sb, eb);
+            }
+            path.get(0).moveTo(sp);
+            path.get(path.size() - 1).moveTo(ep);
+            switch (soutcode) {
+                case Geom.OUT_TOP:
+                    eoutcode = Geom.OUT_LEFT;
+                    break;
+                case Geom.OUT_RIGHT:
+                    eoutcode = Geom.OUT_TOP;
+                    break;
+                case Geom.OUT_BOTTOM:
+                    eoutcode = Geom.OUT_RIGHT;
+                    break;
+                case Geom.OUT_LEFT:
+                    eoutcode = Geom.OUT_BOTTOM;
+                    break;
+                default:
+                    eoutcode = Geom.OUT_TOP;
+                    soutcode = Geom.OUT_RIGHT;
+                    break;
+            }
+            //path.get(0).moveTo(sp.x + shoulderSize, sp.y);
+            path.get(0).mask = BezierPath.C2_MASK;
+
+=====================================================================
+Found a 44 line (199 tokens) duplication in the following files: 
+Starting at line 99 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingViewTransferHandler.java
+Starting at line 145 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingViewTransferHandler.java
+
+                            for (DataFlavor flavor : transferFlavors) {
+                                if (format.isDataFlavorSupported(flavor)) {
+                                    LinkedList<Figure> existingFigures = new LinkedList<>(drawing.getChildren());
+                                    try {
+                                        format.read(t, drawing, false);
+                                        final LinkedList<Figure> importedFigures = new LinkedList<>(drawing.
+                                                getChildren());
+                                        importedFigures.removeAll(existingFigures);
+                                        view.clearSelection();
+                                        view.addToSelection(importedFigures);
+                                        transferFigures.addAll(importedFigures);
+                                        moveToDropPoint(comp, transferFigures, dropPoint);
+                                        drawing.fireUndoableEditHappened(new AbstractUndoableEdit() {
+                                            private static final long serialVersionUID = 1L;
+
+                                            @Override
+                                            public String getPresentationName() {
+                                                ResourceBundleUtil labels = ResourceBundleUtil.getBundle(
+                                                        "org.jhotdraw.draw.Labels");
+                                                return labels.getString("edit.paste.text");
+                                            }
+
+                                            @Override
+                                            public void undo() throws CannotUndoException {
+                                                super.undo();
+                                                drawing.removeAll(importedFigures);
+                                            }
+
+                                            @Override
+                                            public void redo() throws CannotRedoException {
+                                                super.redo();
+                                                drawing.addAll(importedFigures);
+                                            }
+                                        });
+                                        retValue = true;
+                                        break SearchLoop;
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        // failed to read transferalbe, try with next InputFormat
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+
+=====================================================================
+Found a 25 line (199 tokens) duplication in the following files: 
+Starting at line 139 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/CurvedLiner.java
+Starting at line 137 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/ElbowLiner.java
+
+            path.clear();
+            if (sp.x == ep.x || sp.y == ep.y) {
+                path.add(new BezierPath.Node(ep.x, ep.y));
+            } else {
+                Rectangle2D.Double sb = start.getBounds();
+                sb.x += 5d;
+                sb.y += 5d;
+                sb.width -= 10d;
+                sb.height -= 10d;
+                Rectangle2D.Double eb = end.getBounds();
+                eb.x += 5d;
+                eb.y += 5d;
+                eb.width -= 10d;
+                eb.height -= 10d;
+                int soutcode = sb.outcode(sp);
+                if (soutcode == 0) {
+                    soutcode = Geom.outcode(sb, eb);
+                }
+                int eoutcode = eb.outcode(ep);
+                if (eoutcode == 0) {
+                    eoutcode = Geom.outcode(eb, sb);
+                }
+                if ((soutcode & (Geom.OUT_TOP | Geom.OUT_BOTTOM)) != 0
+                        && (eoutcode & (Geom.OUT_TOP | Geom.OUT_BOTTOM)) != 0) {
+                    path.add(new BezierPath.Node(BezierPath.C2_MASK, sp.x, sp.y, sp.x, sp.y, sp.x, (sp.y + ep.y) / 2));
+
+=====================================================================
+Found a 31 line (198 tokens) duplication in the following files: 
+Starting at line 363 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 564 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+        Graphics2D g = (Graphics2D) gr;
+        // Set rendering hints for quality
+        g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        drawDrawing(g);
+    }
+
+    protected void setViewRenderingHints(Graphics2D g) {
+        // Set rendering hints for speed
+        g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    }
+
+    /**
+     * Returns the bounds of the canvas on the drawing view.
+     *
+     * @return The current bounds of the canvas on the drawing view.
+     */
+    protected Rectangle getCanvasViewBounds() {
+        // Position of the zero coordinate point on the view
+        int x = 0;
+
+=====================================================================
+Found a 39 line (196 tokens) duplication in the following files: 
+Starting at line 1080 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 1465 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+    }
+
+    /**
+     * Returns a paint for drawing the background of the drawing area.
+     *
+     * @return Paint.
+     */
+    protected Paint getBackgroundPaint(int x, int y) {
+        if (backgroundTile == null) {
+            backgroundTile = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = backgroundTile.createGraphics();
+            g.setColor(Color.white);
+            g.fillRect(0, 0, 16, 16);
+            g.setColor(new Color(0xdfdfdf));
+            g.fillRect(0, 0, 8, 8);
+            g.fillRect(8, 8, 8, 8);
+            g.dispose();
+        }
+        return new TexturePaint(backgroundTile,
+                new Rectangle(x, y, backgroundTile.getWidth(), backgroundTile.getHeight()));
+    }
+
+    @Override
+    public DrawingEditor getEditor() {
+        return editor;
+    }
+
+    @Override
+    public void setActiveHandle(Handle newValue) {
+        Handle oldValue = activeHandle;
+        if (oldValue != null) {
+            repaint(oldValue.getDrawingArea());
+        }
+        activeHandle = newValue;
+        if (newValue != null) {
+            repaint(newValue.getDrawingArea());
+        }
+        firePropertyChange(ACTIVE_HANDLE_PROPERTY, oldValue, newValue);
+    }
+
+=====================================================================
+Found a 63 line (194 tokens) duplication in the following files: 
+Starting at line 598 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 838 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+    }
+
+    /**
+     * Selects all selectable figures.
+     */
+    @Override
+    public void selectAll() {
+        Set<Figure> oldSelection = new HashSet<>(selectedFigures);
+        selectedFigures.clear();
+        for (Figure figure : drawing.getChildren()) {
+            if (figure.isSelectable()) {
+                selectedFigures.add(figure);
+            }
+        }
+        Set<Figure> newSelection = new HashSet<>(selectedFigures);
+        invalidateHandles();
+        fireSelectionChanged(oldSelection, newSelection);
+        repaint();
+    }
+
+    /**
+     * Clears the current selection.
+     */
+    @Override
+    public void clearSelection() {
+        if (getSelectionCount() > 0) {
+            Set<Figure> oldSelection = new HashSet<>(selectedFigures);
+            selectedFigures.clear();
+            Set<Figure> newSelection = new HashSet<>(selectedFigures);
+            invalidateHandles();
+            fireSelectionChanged(oldSelection, newSelection);
+        }
+    }
+
+    /**
+     * Test whether a given figure is selected.
+     */
+    @Override
+    public boolean isFigureSelected(Figure checkFigure) {
+        return selectedFigures.contains(checkFigure);
+    }
+
+    /**
+     * Gets the current selection as a FigureSelection. A FigureSelection can be cut, copied,
+     * pasted.
+     */
+    @Override
+    public Set<Figure> getSelectedFigures() {
+        return Collections.unmodifiableSet(selectedFigures);
+    }
+
+    /**
+     * Gets the number of selected figures.
+     */
+    @Override
+    public int getSelectionCount() {
+        return selectedFigures.size();
+    }
+
+    /**
+     * Gets the currently active selection handles.
+     */
+    private List<Handle> getSelectionHandles() {
+
+=====================================================================
+Found a 27 line (192 tokens) duplication in the following files: 
+Starting at line 348 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 407 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    new Point2D.Double(sb.x, Math.min(sb.y + sb.height - 1, p.y)),
+                    new Point2D.Double(sb.x + sb.width, sb.y + sb.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Rectangle2D.Double r = getOwner().getBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    setBounds(
+                            new Point2D.Double(r.x, r.y - 1),
+                            new Point2D.Double(r.x + r.width, r.y + r.height));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    if (r.height > 1) {
+                        setBounds(
+                                new Point2D.Double(r.x, r.y + 1),
+                                new Point2D.Double(r.x + r.width, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 27 line (191 tokens) duplication in the following files: 
+Starting at line 506 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 568 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 622 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(Math.max(r.x + 1, p.x), Math.max(r.y + 1, p.y)));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    if (r.height > 1) {
+                        transform(
+                                new Point2D.Double(r.x, r.y),
+                                new Point2D.Double(r.x + r.width, r.y + r.height - 1));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    transform(
+                            new Point2D.Double(r.x, r.y),
+                            new Point2D.Double(r.x + r.width, r.y + r.height + 1));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 27 line (184 tokens) duplication in the following files: 
+Starting at line 273 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 390 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 444 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(Math.max(r.x, p.x), r.y + r.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    transform(
+                            new Point2D.Double(r.x, r.y - 1),
+                            new Point2D.Double(r.x + r.width, r.y + r.height));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    if (r.height > 1) {
+                        transform(
+                                new Point2D.Double(r.x, r.y + 1),
+                                new Point2D.Double(r.x + r.width, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 41 line (180 tokens) duplication in the following files: 
+Starting at line 804 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 1045 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+        return drawing == null ? Collections.emptyList() : drawing.findFiguresWithin(viewToDrawing(r));
+    }
+
+    @Override
+    public void addFigureSelectionListener(FigureSelectionListener fsl) {
+        listenerList.add(FigureSelectionListener.class, fsl);
+    }
+
+    @Override
+    public void removeFigureSelectionListener(FigureSelectionListener fsl) {
+        listenerList.remove(FigureSelectionListener.class, fsl);
+    }
+
+    /**
+     * Notify all listenerList that have registered interest for notification on this event type.
+     * Also notify listeners who listen for {@link EditableComponent#SELECTION_EMPTY_PROPERTY}.
+     */
+    protected void fireSelectionChanged(
+            Set<Figure> oldValue,
+            Set<Figure> newValue) {
+        if (listenerList.getListenerCount() > 0) {
+            FigureSelectionEvent event = null;
+            // Notify all listeners that have registered interest for
+            // Guaranteed to return a non-null array
+            Object[] listeners = listenerList.getListenerList();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for (int i = listeners.length - 2; i
+                    >= 0; i
+                    -= 2) {
+                if (listeners[i] == FigureSelectionListener.class) {
+                    // Lazily create the event:
+                    if (event == null) {
+                        event = new FigureSelectionEvent(this, oldValue, newValue);
+                    }
+                    ((FigureSelectionListener) listeners[i + 1]).selectionChanged(event);
+                }
+            }
+        }
+        firePropertyChange(EditableComponent.SELECTION_EMPTY_PROPERTY, oldValue.isEmpty(), newValue.isEmpty());
+    }
+
+=====================================================================
+Found a 26 line (178 tokens) duplication in the following files: 
+Starting at line 241 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 349 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 408 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    new Point2D.Double(nx, sb.y + sb.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Rectangle2D.Double r = getOwner().getBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    setBounds(
+                            new Point2D.Double(r.x, r.y - 1),
+                            new Point2D.Double(r.x + r.width, r.y + r.height));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    if (r.height > 1) {
+                        setBounds(
+                                new Point2D.Double(r.x, r.y + 1),
+                                new Point2D.Double(r.x + r.width, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 59 line (176 tokens) duplication in the following files: 
+Starting at line 1022 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 1375 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+                drawing.addAll(duplicates);
+            }
+        });
+    }
+
+    @Override
+    public void removeNotify(DrawingEditor editor) {
+        this.editor = null;
+        repaint();
+    }
+
+    @Override
+    public void addNotify(DrawingEditor editor) {
+        DrawingEditor oldValue = editor;
+        this.editor = editor;
+        firePropertyChange("editor", oldValue, editor);
+        invalidateHandles();
+        repaint();
+    }
+
+    @Override
+    public void setVisibleConstrainer(Constrainer newValue) {
+        Constrainer oldValue = visibleConstrainer;
+        visibleConstrainer
+                = newValue;
+        firePropertyChange(VISIBLE_CONSTRAINER_PROPERTY, oldValue, newValue);
+    }
+
+    @Override
+    public Constrainer getVisibleConstrainer() {
+        return visibleConstrainer;
+    }
+
+    @Override
+    public void setInvisibleConstrainer(Constrainer newValue) {
+        Constrainer oldValue = invisibleConstrainer;
+        invisibleConstrainer
+                = newValue;
+        firePropertyChange(INVISIBLE_CONSTRAINER_PROPERTY, oldValue, newValue);
+    }
+
+    @Override
+    public Constrainer getInvisibleConstrainer() {
+        return invisibleConstrainer;
+    }
+
+    @Override
+    public void setConstrainerVisible(boolean newValue) {
+        boolean oldValue = isConstrainerVisible;
+        isConstrainerVisible
+                = newValue;
+        firePropertyChange(CONSTRAINER_VISIBLE_PROPERTY, oldValue, newValue);
+        repaint();
+    }
+
+    @Override
+    public boolean isConstrainerVisible() {
+        return isConstrainerVisible;
+    }
+
+=====================================================================
+Found a 26 line (173 tokens) duplication in the following files: 
+Starting at line 418 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 621 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+            AffineTransform tx = g.getTransform();
+            g.setTransform(tx);
+            drawing.setFontRenderContext(g.getFontRenderContext());
+            drawing.drawCanvas(g);
+            g.dispose();
+        }
+    }
+
+    protected void drawConstrainer(Graphics2D g) {
+        if (getConstrainer() != null) {
+            Shape clip = g.getClip();
+            Rectangle r = getCanvasViewBounds();
+            g.clipRect(r.x, r.y, r.width, r.height);
+            getConstrainer().draw(g, this);
+            g.setClip(clip);
+        }
+    }
+
+    protected void drawDrawing(Graphics2D gr) {
+        if (drawing != null) {
+            if (drawing.getChildCount() == 0 && emptyDrawingLabel != null) {
+                emptyDrawingLabel.setBounds(0, 0, getWidth(), getHeight());
+                emptyDrawingLabel.paint(gr);
+            } else {
+                Graphics2D g = (Graphics2D) gr.create();
+                AffineTransform tx = g.getTransform();
+
+=====================================================================
+Found a 26 line (172 tokens) duplication in the following files: 
+Starting at line 477 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 597 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    new Point2D.Double(nx, ny));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Rectangle2D.Double r = getOwner().getBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    if (r.height > 1) {
+                        setBounds(
+                                new Point2D.Double(r.x, r.y),
+                                new Point2D.Double(r.x + r.width, r.y + r.height - 1));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    setBounds(
+                            new Point2D.Double(r.x, r.y),
+                            new Point2D.Double(r.x + r.width, r.y + r.height + 1));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 36 line (172 tokens) duplication in the following files: 
+Starting at line 157 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextAreaCreationTool.java
+Starting at line 89 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextAreaEditingTool.java
+
+    }
+
+    protected void beginEdit(TextHolderFigure textHolder) {
+        if (textArea == null) {
+            textArea = new FloatingTextArea();
+            //textArea.addActionListener(this);
+        }
+        if (textHolder != typingTarget && typingTarget != null) {
+            endEdit();
+        }
+        textArea.createOverlay(getView(), textHolder);
+        textArea.setBounds(getFieldBounds(textHolder), textHolder.getText());
+        textArea.requestFocus();
+        typingTarget = textHolder;
+    }
+
+    private Rectangle2D.Double getFieldBounds(TextHolderFigure figure) {
+        Rectangle2D.Double r = figure.getDrawingArea();
+        Insets2D.Double insets = figure.getInsets();
+        insets.subtractTo(r);
+        // FIXME - Find a way to determine the parameters for grow.
+        //r.grow(1,2);
+        //r.width += 16;
+        r.x -= 1;
+        r.y -= 2;
+        r.width += 18;
+        r.height += 4;
+        return r;
+    }
+
+    protected void endEdit() {
+        if (typingTarget != null) {
+            typingTarget.willChange();
+            final TextHolderFigure editedFigure = typingTarget;
+            final String oldText = typingTarget.getText();
+            final String newText = textArea.getText();
+
+=====================================================================
+Found a 26 line (170 tokens) duplication in the following files: 
+Starting at line 477 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 536 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 597 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    new Point2D.Double(nx, ny));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Rectangle2D.Double r = getOwner().getBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    if (r.height > 1) {
+                        setBounds(
+                                new Point2D.Double(r.x, r.y),
+                                new Point2D.Double(r.x + r.width, r.y + r.height - 1));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    setBounds(
+                            new Point2D.Double(r.x, r.y),
+                            new Point2D.Double(r.x + r.width, r.y + r.height + 1));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 27 line (169 tokens) duplication in the following files: 
+Starting at line 181 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 140 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/ImageFigure.java
+Starting at line 77 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/RectangleFigure.java
+
+        return diamond.contains(p);
+    }
+
+    @Override
+    public void setBounds(Point2D.Double anchor, Point2D.Double lead) {
+        rectangle.x = Math.min(anchor.x, lead.x);
+        rectangle.y = Math.min(anchor.y, lead.y);
+        rectangle.width = Math.max(0.1, Math.abs(lead.x - anchor.x));
+        rectangle.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Moves the Figure to a new location.
+     *
+     * @param tx the transformation matrix.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead));
+    }
+
+    @Override
+    public void restoreTransformTo(Object geometry) {
+
+=====================================================================
+Found a 18 line (169 tokens) duplication in the following files: 
+Starting at line 116 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/ElbowLiner.java
+Starting at line 116 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/SlantedLiner.java
+
+                path.get(3).moveTo(ep.x, ep.y - shoulderSize);
+            }
+            switch (soutcode) {
+                case Geom.OUT_RIGHT:
+                    path.get(2).moveTo(path.get(1).x[0], path.get(3).y[0]);
+                    break;
+                case Geom.OUT_TOP:
+                    path.get(2).moveTo(path.get(1).y[0], path.get(3).x[0]);
+                    break;
+                case Geom.OUT_LEFT:
+                    path.get(2).moveTo(path.get(1).x[0], path.get(3).y[0]);
+                    break;
+                case Geom.OUT_BOTTOM:
+                default:
+                    path.get(2).moveTo(path.get(1).y[0], path.get(3).x[0]);
+                    break;
+            }
+        } else {
+
+=====================================================================
+Found a 35 line (168 tokens) duplication in the following files: 
+Starting at line 101 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AttributeAction.java
+Starting at line 93 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AttributeToggler.java
+
+            figure.changed();
+        }
+        UndoableEdit edit = new AbstractUndoableEdit() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getPresentationName() {
+                String name = (String) getValue(ActionUtil.UNDO_PRESENTATION_NAME_KEY);
+                if (name == null) {
+                    name = (String) getValue(AbstractAction.NAME);
+                }
+                if (name == null) {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    name = labels.getString("attribute.text");
+                }
+                return name;
+            }
+
+            @Override
+            public void undo() {
+                super.undo();
+                Iterator<Object> iRestore = restoreData.iterator();
+                for (Figure figure : selectedFigures) {
+                    figure.willChange();
+                    figure.restoreAttributesTo(iRestore.next());
+                    figure.changed();
+                }
+            }
+
+            @Override
+            public void redo() {
+                super.redo();
+                for (Figure figure : selectedFigures) {
+                    //restoreData.add(figure.getAttributesRestoreData());
+                    figure.willChange();
+
+=====================================================================
+Found a 34 line (163 tokens) duplication in the following files: 
+Starting at line 226 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierNodeHandle.java
+Starting at line 338 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierNodeHandle.java
+
+            Rectangle invalidatedArea = getDrawingArea();
+            f.willChange();
+            final BezierPath.Node removedNode = f.removeNode(index);
+            f.changed();
+            fireHandleRequestRemove(invalidatedArea);
+            fireUndoableEditHappened(new AbstractUndoableEdit() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getPresentationName() {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    return labels.getString("edit.bezierPath.joinSegments.text");
+                }
+
+                @Override
+                public void redo() throws CannotRedoException {
+                    super.redo();
+                    view.removeFromSelection(f);
+                    f.willChange();
+                    f.removeNode(index);
+                    f.changed();
+                    view.addToSelection(f);
+                }
+
+                @Override
+                public void undo() throws CannotUndoException {
+                    super.undo();
+                    view.removeFromSelection(f);
+                    f.willChange();
+                    f.addNode(index, removedNode);
+                    f.changed();
+                    view.addToSelection(f);
+                }
+            });
+
+=====================================================================
+Found a 22 line (162 tokens) duplication in the following files: 
+Starting at line 124 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedCompositeFigure.java
+Starting at line 114 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedFigure.java
+
+        if (get(FILL_COLOR) != null) {
+            g.setColor(get(FILL_COLOR));
+            drawFill(g);
+        }
+        if (get(STROKE_COLOR) != null && get(STROKE_WIDTH) >= 0d) {
+            g.setStroke(AttributeKeys.getStroke(this, AttributeKeys.getScaleFactorFromGraphics(g)));
+            g.setColor(get(STROKE_COLOR));
+            drawStroke(g);
+        }
+        if (get(TEXT_COLOR) != null) {
+            if (get(TEXT_SHADOW_COLOR) != null
+                    && get(TEXT_SHADOW_OFFSET) != null) {
+                Dimension2DDouble d = get(TEXT_SHADOW_OFFSET);
+                g.translate(d.width, d.height);
+                g.setColor(get(TEXT_SHADOW_COLOR));
+                drawText(g);
+                g.translate(-d.width, -d.height);
+            }
+            g.setColor(get(TEXT_COLOR));
+            drawText(g);
+        }
+    }
+
+=====================================================================
+Found a 36 line (155 tokens) duplication in the following files: 
+Starting at line 132 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawing.java
+Starting at line 188 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+
+    }
+
+    @Override
+    public Figure findFigureBehind(Point2D.Double p, Figure figure) {
+        boolean isBehind = false;
+        for (Figure f : getFiguresFrontToBack()) {
+            if (isBehind) {
+                if (f.isVisible() && f.contains(p)) {
+                    return f;
+                }
+            } else {
+                isBehind = figure == f;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Figure findFigureBehind(Point2D.Double p, Collection<? extends Figure> children) {
+        int inFrontOf = children.size();
+        for (Figure f : getFiguresFrontToBack()) {
+            if (inFrontOf == 0) {
+                if (f.isVisible() && f.contains(p)) {
+                    return f;
+                }
+            } else {
+                if (children.contains(f)) {
+                    inFrontOf--;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Figure findFigureExcept(Point2D.Double p, Collection<? extends Figure> ignore) {
+
+=====================================================================
+Found a 24 line (155 tokens) duplication in the following files: 
+Starting at line 297 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 352 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 530 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+                    if (r.width > 1) {
+                        transform(
+                                new Point2D.Double(r.x, r.y),
+                                new Point2D.Double(r.x + r.width - 1, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    transform(
+                            new Point2D.Double(r.x, r.y),
+                            new Point2D.Double(r.x + r.width + 1, r.y + r.height));
+                    evt.consume();
+                    break;
+            }
+            fireUndoableEditHappened(
+                    new TransformRestoreEdit(getOwner(), geom, getOwner().getTransformRestoreData()));
+        }
+
+        @Override
+        public Cursor getCursor() {
+            return Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+
+=====================================================================
+Found a 24 line (155 tokens) duplication in the following files: 
+Starting at line 468 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 646 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 700 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+                    transform(
+                            new Point2D.Double(r.x - 1, r.y),
+                            new Point2D.Double(r.x + r.width, r.y + r.height));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    if (r.width > 1) {
+                        transform(
+                                new Point2D.Double(r.x + 1, r.y),
+                                new Point2D.Double(r.x + r.width, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+            }
+            fireUndoableEditHappened(
+                    new TransformRestoreEdit(getOwner(), geom, getOwner().getTransformRestoreData()));
+        }
+
+        @Override
+        public Cursor getCursor() {
+            return Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
+
+=====================================================================
+Found a 11 line (147 tokens) duplication in the following files: 
+Starting at line 73 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 104 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+            growx = ((yb * yb) / xa + xa);
+            growy = ((xa * xa) / yb + yb);
+            Geom.grow(r, growx, growy);
+        }
+        Path2D.Double diamond = new Path2D.Double();
+        diamond.moveTo((r.x + r.width / 2), r.y);
+        diamond.lineTo((r.x + r.width), (r.y + r.height / 2));
+        diamond.lineTo((r.x + r.width / 2), (r.y + r.height));
+        diamond.lineTo(r.x, (r.y + r.height / 2));
+        diamond.closePath();
+        g.fill(diamond);
+
+=====================================================================
+Found a 37 line (146 tokens) duplication in the following files: 
+Starting at line 147 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextCreationTool.java
+Starting at line 104 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextEditingTool.java
+
+            }
+            UndoableEdit edit = new AbstractUndoableEdit() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getPresentationName() {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    return labels.getString("attribute.text.text");
+                }
+
+                @Override
+                public void undo() {
+                    super.undo();
+                    editedFigure.willChange();
+                    editedFigure.setText(oldText);
+                    editedFigure.changed();
+                }
+
+                @Override
+                public void redo() {
+                    super.redo();
+                    editedFigure.willChange();
+                    editedFigure.setText(newText);
+                    editedFigure.changed();
+                }
+            };
+            getDrawing().fireUndoableEditHappened(edit);
+            typingTarget.changed();
+            typingTarget = null;
+            textField.endOverlay();
+        }
+        //         view().checkDamage();
+    }
+
+    @Override
+    public void keyReleased(KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ESCAPE || isToolDoneAfterCreation()) {
+
+=====================================================================
+Found a 29 line (145 tokens) duplication in the following files: 
+Starting at line 245 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawing.java
+Starting at line 321 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+
+    }
+
+    @Override
+    protected void drawFill(Graphics2D g) {
+    }
+
+    @Override
+    protected void drawStroke(Graphics2D g) {
+    }
+
+    @Override
+    public void drawCanvas(Graphics2D g) {
+        if (get(CANVAS_WIDTH) != null && get(CANVAS_HEIGHT) != null) {
+            // Determine canvas color and opacity
+            Color canvasColor = get(CANVAS_FILL_COLOR);
+            Double fillOpacity = get(CANVAS_FILL_OPACITY);
+            if (canvasColor != null && fillOpacity > 0) {
+                canvasColor = new Color(
+                        (canvasColor.getRGB() & 0xffffff)
+                        | ((int) (fillOpacity * 255) << 24), true);
+                // Fill the canvas
+                Rectangle2D.Double r = new Rectangle2D.Double(
+                        0, 0, get(CANVAS_WIDTH), get(CANVAS_HEIGHT));
+                g.setColor(canvasColor);
+                g.fill(r);
+            }
+        }
+    }
+}
+
+=====================================================================
+Found a 10 line (145 tokens) duplication in the following files: 
+Starting at line 104 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 171 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+            growx = ((yb * yb) / xa + xa);
+            growy = ((xa * xa) / yb + yb);
+            Geom.grow(r, growx, growy);
+        }
+        Path2D.Double diamond = new Path2D.Double();
+        diamond.moveTo((r.x + r.width / 2), r.y);
+        diamond.lineTo((r.x + r.width), (r.y + r.height / 2));
+        diamond.lineTo((r.x + r.width / 2), (r.y + r.height));
+        diamond.lineTo(r.x, (r.y + r.height / 2));
+        diamond.closePath();
+
+=====================================================================
+Found a 23 line (143 tokens) duplication in the following files: 
+Starting at line 264 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 313 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 500 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+                    if (r.width > 1) {
+                        setBounds(
+                                new Point2D.Double(r.x, r.y),
+                                new Point2D.Double(r.x + r.width - 1, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    setBounds(
+                            new Point2D.Double(r.x, r.y),
+                            new Point2D.Double(r.x + r.width + 1, r.y + r.height));
+                    evt.consume();
+                    break;
+            }
+        }
+
+        @Override
+        public Cursor getCursor() {
+            return Cursor.getPredefinedCursor(
+                    getOwner().isTransformable() ? Cursor.NE_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR);
+
+=====================================================================
+Found a 23 line (143 tokens) duplication in the following files: 
+Starting at line 431 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 620 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 669 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+                    setBounds(
+                            new Point2D.Double(r.x - 1, r.y),
+                            new Point2D.Double(r.x + r.width, r.y + r.height));
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    if (r.width > 1) {
+                        setBounds(
+                                new Point2D.Double(r.x + 1, r.y),
+                                new Point2D.Double(r.x + r.width, r.y + r.height));
+                    }
+                    evt.consume();
+                    break;
+            }
+        }
+
+        @Override
+        public Cursor getCursor() {
+            return Cursor.getPredefinedCursor(
+                    getOwner().isTransformable() ? Cursor.NW_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR);
+
+=====================================================================
+Found a 12 line (141 tokens) duplication in the following files: 
+Starting at line 99 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/SlantedLiner.java
+Starting at line 175 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/SlantedLiner.java
+
+            path.get(1).moveTo(sp.x + slantSize, sp.y);
+            if ((soutcode & Geom.OUT_RIGHT) != 0) {
+                path.get(1).moveTo(sp.x + slantSize, sp.y);
+            } else if ((soutcode & Geom.OUT_LEFT) != 0) {
+                path.get(1).moveTo(sp.x - slantSize, sp.y);
+            } else if ((soutcode & Geom.OUT_BOTTOM) != 0) {
+                path.get(1).moveTo(sp.x, sp.y + slantSize);
+            } else {
+                path.get(1).moveTo(sp.x, sp.y - slantSize);
+            }
+            if ((eoutcode & Geom.OUT_RIGHT) != 0) {
+                path.get(3).moveTo(ep.x + slantSize, ep.y);
+
+=====================================================================
+Found a 24 line (140 tokens) duplication in the following files: 
+Starting at line 85 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/DefaultDragTracker.java
+Starting at line 75 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/DnDTracker.java
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent evt) {
+        updateCursor(editor.findView((Container) evt.getSource()), evt.getPoint());
+    }
+
+    @Override
+    public void mousePressed(MouseEvent evt) {
+        super.mousePressed(evt);
+        DrawingView view = getView();
+        if (evt.isShiftDown()) {
+            view.setHandleDetailLevel(0);
+            view.toggleSelection(anchorFigure);
+            if (!view.isFigureSelected(anchorFigure)) {
+                anchorFigure = null;
+            }
+        } else if (!view.isFigureSelected(anchorFigure)) {
+            view.setHandleDetailLevel(0);
+            view.clearSelection();
+            view.addToSelection(anchorFigure);
+        }
+        if (!view.getSelectedFigures().isEmpty()) {
+            dragRect = null;
+
+=====================================================================
+Found a 39 line (139 tokens) duplication in the following files: 
+Starting at line 244 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+Starting at line 238 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/QuadTreeCompositeFigure.java
+
+            if (f.isVisible() && Geom.contains(bounds, r)) {
+                contained.add(f);
+            }
+        }
+        return contained;
+    }
+
+    @Override
+    public void bringToFront(Figure figure) {
+        if (children.remove(figure)) {
+            children.add(figure);
+            needsSorting = true;
+            fireAreaInvalidated(figure.getDrawingArea());
+        }
+    }
+
+    @Override
+    public void sendToBack(Figure figure) {
+        if (children.remove(figure)) {
+            children.add(0, figure);
+            needsSorting = true;
+            fireAreaInvalidated(figure.getDrawingArea());
+        }
+    }
+
+    @Override
+    public boolean contains(Figure f) {
+        return children.contains(f);
+    }
+
+    /**
+     * Ensures that the children are sorted in z-order sequence.
+     */
+    private void ensureSorted() {
+        if (needsSorting) {
+            Collections.sort(children, FigureLayerComparator.INSTANCE);
+            needsSorting = false;
+        }
+    }
+
+=====================================================================
+Found a 36 line (137 tokens) duplication in the following files: 
+Starting at line 203 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextAreaCreationTool.java
+Starting at line 132 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextAreaEditingTool.java
+
+            UndoableEdit edit = new AbstractUndoableEdit() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getPresentationName() {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    return labels.getString("attribute.text.text");
+                }
+
+                @Override
+                public void undo() {
+                    super.undo();
+                    editedFigure.willChange();
+                    editedFigure.setText(oldText);
+                    editedFigure.changed();
+                }
+
+                @Override
+                public void redo() {
+                    super.redo();
+                    editedFigure.willChange();
+                    editedFigure.setText(newText);
+                    editedFigure.changed();
+                }
+            };
+            getDrawing().fireUndoableEditHappened(edit);
+            typingTarget.changed();
+            typingTarget = null;
+            textArea.endOverlay();
+        }
+        //         view().checkDamage();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+        endEdit();
+
+=====================================================================
+Found a 22 line (132 tokens) duplication in the following files: 
+Starting at line 310 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 331 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+    public String getToolTipText(MouseEvent evt) {
+        if (getEditor() != null && getEditor().getTool() != null) {
+            return getEditor().getTool().getToolTipText(this, evt);
+        }
+        return null;
+    }
+
+    public void setEmptyDrawingMessage(String newValue) {
+        String oldValue = (emptyDrawingLabel == null) ? null : emptyDrawingLabel.getText();
+        if (newValue == null) {
+            emptyDrawingLabel = null;
+        } else {
+            emptyDrawingLabel = new JLabel(newValue);
+            emptyDrawingLabel.setHorizontalAlignment(JLabel.CENTER);
+        }
+        firePropertyChange("emptyDrawingMessage", oldValue, newValue);
+        repaint();
+    }
+
+    public String getEmptyDrawingMessage() {
+        return (emptyDrawingLabel == null) ? null : emptyDrawingLabel.getText();
+    }
+
+=====================================================================
+Found a 24 line (132 tokens) duplication in the following files: 
+Starting at line 395 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 596 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+        int w = getWidth();
+        int h = getHeight();
+        if (getDrawing() != null) {
+            Double cw = getDrawing().get(CANVAS_WIDTH);
+            Double ch = getDrawing().get(CANVAS_HEIGHT);
+            if (cw != null && ch != null) {
+                Point lowerRight = drawingToView(
+                        new Point2D.Double(cw, ch));
+                w = lowerRight.x - x;
+                h = lowerRight.y - y;
+            }
+        }
+        return new Rectangle(x, y, w, h);
+    }
+
+    /**
+     * Draws the canvas. If the {@code AttributeKeys.CANVAS_FILL_OPACITY} is not fully opaque, the
+     * canvas area is filled with the background paint before the
+     * {@code AttributeKeys.CANVAS_FILL_COLOR} is drawn.
+     */
+    protected void drawCanvas(Graphics2D gr) {
+        if (drawing != null) {
+            Graphics2D g = (Graphics2D) gr.create();
+            AffineTransform tx = g.getTransform();
+
+=====================================================================
+Found a 35 line (132 tokens) duplication in the following files: 
+Starting at line 74 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 109 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+    }
+
+    static public Handle south(Figure owner) {
+        return new SouthHandle(owner);
+    }
+
+    static public Handle southEast(Figure owner) {
+        return new SouthEastHandle(owner);
+    }
+
+    static public Handle southWest(Figure owner) {
+        return new SouthWestHandle(owner);
+    }
+
+    static public Handle north(Figure owner) {
+        return new NorthHandle(owner);
+    }
+
+    static public Handle northEast(Figure owner) {
+        return new NorthEastHandle(owner);
+    }
+
+    static public Handle northWest(Figure owner) {
+        return new NorthWestHandle(owner);
+    }
+
+    static public Handle east(Figure owner) {
+        return new EastHandle(owner);
+    }
+
+    static public Handle west(Figure owner) {
+        return new WestHandle(owner);
+    }
+
+    private static class ResizeHandle extends LocatorHandle {
+
+=====================================================================
+Found a 23 line (131 tokens) duplication in the following files: 
+Starting at line 64 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/event/DrawingComponentRepainter.java
+Starting at line 67 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/event/SelectionComponentRepainter.java
+
+                view.addPropertyChangeListener(this);
+                if (view.getDrawing() != null) {
+                    view.getDrawing().addFigureListener(this);
+                }
+            }
+            component.repaint();
+        } else if ((name == null && DrawingView.DRAWING_PROPERTY == null) || (name != null && name.equals(DrawingView.DRAWING_PROPERTY))) {
+            Drawing drawing = (Drawing) evt.getOldValue();
+            if (drawing != null) {
+                drawing.removeFigureListener(this);
+            }
+            drawing = (Drawing) evt.getNewValue();
+            if (drawing != null) {
+                drawing.addFigureListener(this);
+            }
+            component.repaint();
+        } else {
+            component.repaint();
+        }
+    }
+
+    @Override
+    public void dispose() {
+
+=====================================================================
+Found a 27 line (128 tokens) duplication in the following files: 
+Starting at line 112 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextCreationTool.java
+Starting at line 75 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextEditingTool.java
+
+    }
+
+    protected void beginEdit(TextHolderFigure textHolder) {
+        if (textField == null) {
+            textField = new FloatingTextField();
+            textField.addActionListener(this);
+        }
+        if (textHolder != typingTarget && typingTarget != null) {
+            endEdit();
+        }
+        textField.createOverlay(getView(), textHolder);
+        textField.requestFocus();
+        typingTarget = textHolder;
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent evt) {
+    }
+
+    protected void endEdit() {
+        if (typingTarget != null) {
+            typingTarget.willChange();
+            final TextHolderFigure editedFigure = typingTarget;
+            final String oldText = typingTarget.getText();
+            final String newText = textField.getText();
+            if (newText.length() > 0) {
+                typingTarget.setText(newText);
+
+=====================================================================
+Found a 23 line (127 tokens) duplication in the following files: 
+Starting at line 56 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedCompositeFigure.java
+Starting at line 61 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedFigure.java
+
+    public <T> boolean isAttributeEnabled(AttributeKey<?> key) {
+        return forbiddenAttributes == null || !forbiddenAttributes.contains(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void setAttributes(Map<AttributeKey<?>, Object> map) {
+        for (Map.Entry<AttributeKey<?>, Object> entry : map.entrySet()) {
+            set((AttributeKey<Object>) entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public Map<AttributeKey<?>, Object> getAttributes() {
+        return (Map<AttributeKey<?>, Object>) new HashMap<>(attributes);
+    }
+
+    /**
+     * Sets an attribute of the figure.
+     * AttributeKey name and semantics are defined by the class implementing
+     * the figure interface.
+     */
+    @Override
+    public <T> void set(AttributeKey<T> key, T newValue) {
+
+=====================================================================
+Found a 17 line (126 tokens) duplication in the following files: 
+Starting at line 987 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 1340 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+        Collection<Figure> sorted = drawing.sort(getSelectedFigures());
+        HashMap<Figure, Figure> originalToDuplicateMap = new HashMap<>(sorted.size());
+        clearSelection();
+        final ArrayList<Figure> duplicates = new ArrayList<>(sorted.size());
+        AffineTransform tx = new AffineTransform();
+        tx.translate(5, 5);
+        for (Figure f : sorted) {
+            Figure d = f.clone();
+            d.transform(tx);
+            duplicates.add(d);
+            originalToDuplicateMap.put(f, d);
+            drawing.add(d);
+        }
+        for (Figure f : duplicates) {
+            f.remap(originalToDuplicateMap, false);
+        }
+        addToSelection(duplicates);
+
+=====================================================================
+Found a 15 line (125 tokens) duplication in the following files: 
+Starting at line 75 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/locator/BezierLabelLocator.java
+Starting at line 103 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/locator/BezierLabelLocator.java
+
+        Point2D.Double nextPoint = owner.getPointOnPath(
+                (relativePosition < 0.5) ? (float) relativePosition + 0.1f : (float) relativePosition - 0.1f,
+                3);
+        double dir = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x);
+        if (relativePosition >= 0.5) {
+            dir += Math.PI;
+        }
+        double alpha = dir + angle;
+        Point2D.Double p = new Point2D.Double(
+                point.x + distance * Math.cos(alpha),
+                point.y + distance * Math.sin(alpha)
+        );
+        if (Double.isNaN(p.x)) {
+            p = point;
+        }
+
+=====================================================================
+Found a 18 line (124 tokens) duplication in the following files: 
+Starting at line 128 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedCompositeFigure.java
+Starting at line 69 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/ImageFigure.java
+
+        if (get(STROKE_COLOR) != null && get(STROKE_WIDTH) >= 0d) {
+            g.setStroke(AttributeKeys.getStroke(this, AttributeKeys.getScaleFactorFromGraphics(g)));
+            g.setColor(get(STROKE_COLOR));
+            drawStroke(g);
+        }
+        if (get(TEXT_COLOR) != null) {
+            if (get(TEXT_SHADOW_COLOR) != null
+                    && get(TEXT_SHADOW_OFFSET) != null) {
+                Dimension2DDouble d = get(TEXT_SHADOW_OFFSET);
+                g.translate(d.width, d.height);
+                g.setColor(get(TEXT_SHADOW_COLOR));
+                drawText(g);
+                g.translate(-d.width, -d.height);
+            }
+            g.setColor(get(TEXT_COLOR));
+            drawText(g);
+        }
+    }
+
+=====================================================================
+Found a 18 line (124 tokens) duplication in the following files: 
+Starting at line 118 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractAttributedFigure.java
+Starting at line 69 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/ImageFigure.java
+
+        if (get(STROKE_COLOR) != null && get(STROKE_WIDTH) >= 0d) {
+            g.setStroke(AttributeKeys.getStroke(this, AttributeKeys.getScaleFactorFromGraphics(g)));
+            g.setColor(get(STROKE_COLOR));
+            drawStroke(g);
+        }
+        if (get(TEXT_COLOR) != null) {
+            if (get(TEXT_SHADOW_COLOR) != null
+                    && get(TEXT_SHADOW_OFFSET) != null) {
+                Dimension2DDouble d = get(TEXT_SHADOW_OFFSET);
+                g.translate(d.width, d.height);
+                g.setColor(get(TEXT_SHADOW_COLOR));
+                drawText(g);
+                g.translate(-d.width, -d.height);
+            }
+            g.setColor(get(TEXT_COLOR));
+            drawText(g);
+        }
+    }
+
+=====================================================================
+Found a 30 line (124 tokens) duplication in the following files: 
+Starting at line 416 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/LineConnectionFigure.java
+Starting at line 69 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/LineFigure.java
+
+                && evt.getClickCount() == 2) {
+            willChange();
+            final int index = splitSegment(p, (float) (5f / view.getScaleFactor()));
+            if (index != -1) {
+                final BezierPath.Node newNode = getNode(index);
+                fireUndoableEditHappened(new AbstractUndoableEdit() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void redo() throws CannotRedoException {
+                        super.redo();
+                        willChange();
+                        addNode(index, newNode);
+                        changed();
+                    }
+
+                    @Override
+                    public void undo() throws CannotUndoException {
+                        super.undo();
+                        willChange();
+                        removeNode(index);
+                        changed();
+                    }
+                });
+                changed();
+                return true;
+            }
+        }
+        return false;
+    }
+
+=====================================================================
+Found a 36 line (123 tokens) duplication in the following files: 
+Starting at line 73 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/GraphicalCompositeFigure.java
+Starting at line 57 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/LabeledLineConnectionFigure.java
+
+        private PresentationFigureHandler(GraphicalCompositeFigure owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public void figureRequestRemove(FigureEvent e) {
+            owner.remove(e.getFigure());
+        }
+
+        @Override
+        public void figureChanged(FigureEvent e) {
+            if (!owner.isChanging()) {
+                owner.willChange();
+                owner.fireFigureChanged(e);
+                owner.changed();
+            }
+        }
+
+        @Override
+        public void areaInvalidated(FigureEvent e) {
+            if (!owner.isChanging()) {
+                owner.fireAreaInvalidated(e.getInvalidatedArea());
+            }
+        }
+
+        @Override
+        public void undoableEditHappened(UndoableEditEvent e) {
+            owner.fireUndoableEditHappened(e.getEdit());
+        }
+    };
+
+    /**
+     * Default constructor which uses nothing as presentation
+     * figure. This constructor is needed by the Storable mechanism.
+     */
+    public GraphicalCompositeFigure() {
+
+=====================================================================
+Found a 12 line (123 tokens) duplication in the following files: 
+Starting at line 305 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractCompositeFigure.java
+Starting at line 237 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+        Rectangle2D.Double oldBounds = getBounds();
+        Rectangle2D.Double newBounds = new Rectangle2D.Double(
+                Math.min(anchor.x, lead.x),
+                Math.min(anchor.y, lead.y),
+                Math.abs(anchor.x - lead.x),
+                Math.abs(anchor.y - lead.y));
+        double sx = newBounds.width / oldBounds.width;
+        double sy = newBounds.height / oldBounds.height;
+        AffineTransform tx = new AffineTransform();
+        tx.translate(-oldBounds.x, -oldBounds.y);
+        if (!Double.isNaN(sx) && !Double.isNaN(sy)
+                && !Double.isInfinite(sx) && !Double.isInfinite(sy)
+
+=====================================================================
+Found a 12 line (123 tokens) duplication in the following files: 
+Starting at line 119 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractRotateHandle.java
+Starting at line 106 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierScaleHandle.java
+
+        center = getCenter();
+        Point2D.Double anchorPoint = view.viewToDrawing(anchor);
+        startTheta = Geom.angle(center.x, center.y, anchorPoint.x, anchorPoint.y);
+        startLength = Geom.length(center.x, center.y, anchorPoint.x, anchorPoint.y);
+    }
+
+    @Override
+    public void trackStep(Point anchor, Point lead, int modifiersEx) {
+        location = new Point(lead.x, lead.y);
+        Point2D.Double leadPoint = view.viewToDrawing(lead);
+        double stepTheta = Geom.angle(center.x, center.y, leadPoint.x, leadPoint.y);
+        double currentTheta = view.getConstrainer() == null ? (stepTheta - startTheta) : view.getConstrainer().constrainAngle(stepTheta - startTheta, getOwner());
+
+=====================================================================
+Found a 23 line (123 tokens) duplication in the following files: 
+Starting at line 157 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/DOMStorableInputOutputFormat.java
+Starting at line 95 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/SerializationInputOutputFormat.java
+
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing) throws IOException {
+        read(new File(uri), drawing);
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing, boolean replace) throws IOException {
+        read(new File(uri), drawing, replace);
+    }
+
+    public void read(File file, Drawing drawing) throws IOException {
+        read(file, drawing, true);
+    }
+
+    public void read(File file, Drawing drawing, boolean replace) throws IOException {
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            read(in, drawing, replace);
+        }
+    }
+
+    @Override
+
+=====================================================================
+Found a 21 line (122 tokens) duplication in the following files: 
+Starting at line 37 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/event/DrawingComponentRepainter.java
+Starting at line 38 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/event/SelectionComponentRepainter.java
+
+                view.addPropertyChangeListener(this);
+                if (view.getDrawing() != null) {
+                    view.getDrawing().addFigureListener(this);
+                }
+            }
+            editor.addPropertyChangeListener(this);
+        }
+    }
+
+    @Override
+    public void attributeChanged(FigureEvent evt) {
+        component.repaint();
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        String name = evt.getPropertyName();
+        if ((name == null && DrawingEditor.ACTIVE_VIEW_PROPERTY == null) || (name != null && name.equals(DrawingEditor.ACTIVE_VIEW_PROPERTY))) {
+            DrawingView view = (DrawingView) evt.getOldValue();
+            if (view != null) {
+                view.removePropertyChangeListener(this);
+
+=====================================================================
+Found a 15 line (121 tokens) duplication in the following files: 
+Starting at line 190 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawing.java
+Starting at line 238 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+
+        for (Figure f : getChildren()) {
+            Rectangle2D.Double r = f.getBounds();
+            if (f.get(TRANSFORM) != null) {
+                Rectangle2D rt = f.get(TRANSFORM).createTransformedShape(r).getBounds2D();
+                r = (rt instanceof Rectangle2D.Double) ? (Rectangle2D.Double) rt : new Rectangle2D.Double(rt.getX(), rt.getY(), rt.getWidth(), rt.getHeight());
+            }
+            if (f.isVisible() && Geom.contains(bounds, r)) {
+                contained.add(f);
+            }
+        }
+        return contained;
+    }
+
+    @Override
+    public Figure findFigureInside(Point2D.Double p) {
+
+=====================================================================
+Found a 31 line (120 tokens) duplication in the following files: 
+Starting at line 200 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextAreaCreationTool.java
+Starting at line 145 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextCreationTool.java
+
+                    typingTarget.setText("");
+                }
+            }
+            UndoableEdit edit = new AbstractUndoableEdit() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getPresentationName() {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    return labels.getString("attribute.text.text");
+                }
+
+                @Override
+                public void undo() {
+                    super.undo();
+                    editedFigure.willChange();
+                    editedFigure.setText(oldText);
+                    editedFigure.changed();
+                }
+
+                @Override
+                public void redo() {
+                    super.redo();
+                    editedFigure.willChange();
+                    editedFigure.setText(newText);
+                    editedFigure.changed();
+                }
+            };
+            getDrawing().fireUndoableEditHappened(edit);
+            typingTarget.changed();
+            typingTarget = null;
+
+=====================================================================
+Found a 29 line (118 tokens) duplication in the following files: 
+Starting at line 202 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextAreaCreationTool.java
+Starting at line 104 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextEditingTool.java
+
+            }
+            UndoableEdit edit = new AbstractUndoableEdit() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getPresentationName() {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    return labels.getString("attribute.text.text");
+                }
+
+                @Override
+                public void undo() {
+                    super.undo();
+                    editedFigure.willChange();
+                    editedFigure.setText(oldText);
+                    editedFigure.changed();
+                }
+
+                @Override
+                public void redo() {
+                    super.redo();
+                    editedFigure.willChange();
+                    editedFigure.setText(newText);
+                    editedFigure.changed();
+                }
+            };
+            getDrawing().fireUndoableEditHappened(edit);
+            typingTarget.changed();
+            typingTarget = null;
+
+=====================================================================
+Found a 28 line (117 tokens) duplication in the following files: 
+Starting at line 132 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextAreaEditingTool.java
+Starting at line 148 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextCreationTool.java
+Starting at line 105 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/TextEditingTool.java
+
+            UndoableEdit edit = new AbstractUndoableEdit() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getPresentationName() {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    return labels.getString("attribute.text.text");
+                }
+
+                @Override
+                public void undo() {
+                    super.undo();
+                    editedFigure.willChange();
+                    editedFigure.setText(oldText);
+                    editedFigure.changed();
+                }
+
+                @Override
+                public void redo() {
+                    super.redo();
+                    editedFigure.willChange();
+                    editedFigure.setText(newText);
+                    editedFigure.changed();
+                }
+            };
+            getDrawing().fireUndoableEditHappened(edit);
+            typingTarget.changed();
+            typingTarget = null;
+
+=====================================================================
+Found a 16 line (116 tokens) duplication in the following files: 
+Starting at line 193 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierControlPointHandle.java
+Starting at line 157 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierNodeHandle.java
+
+        fireAreaInvalidated(figure.getNode(index));
+    }
+
+    private void fireAreaInvalidated(BezierPath.Node v) {
+        Rectangle2D.Double dr = new Rectangle2D.Double(v.x[0], v.y[0], 0, 0);
+        for (int i = 1; i < 3; i++) {
+            dr.add(v.x[i], v.y[i]);
+        }
+        Rectangle vr = view.drawingToView(dr);
+        vr.grow(getHandlesize(), getHandlesize());
+        fireAreaInvalidated(vr);
+    }
+
+    @Override
+    public void trackEnd(Point anchor, Point lead, int modifiersEx) {
+        final BezierFigure figure = getBezierFigure();
+
+=====================================================================
+Found a 45 line (113 tokens) duplication in the following files: 
+Starting at line 348 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+Starting at line 224 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextFigure.java
+
+        return (getText() == null) ? 4 : Math.max(getText().length(), 4);
+    }
+
+    @Override
+    public Font getFont() {
+        return AttributeKeys.getFont(this);
+    }
+
+    @Override
+    public Color getTextColor() {
+        return get(TEXT_COLOR);
+    }
+
+    @Override
+    public Color getFillColor() {
+        return get(FILL_COLOR);
+    }
+
+    @Override
+    public void setFontSize(float size) {
+        set(FONT_SIZE, new Double(size));
+    }
+
+    @Override
+    public float getFontSize() {
+        return get(FONT_SIZE).floatValue();
+    }
+
+    // EDITING
+    @Override
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean b) {
+        this.editable = b;
+    }
+
+    /**
+     * Returns a specialized tool for the given coordinate.
+     * <p>
+     * Returns null, if no specialized tool is available.
+     */
+    @Override
+    public Tool getTool(Point2D.Double p) {
+
+=====================================================================
+Found a 26 line (112 tokens) duplication in the following files: 
+Starting at line 107 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingViewTransferHandler.java
+Starting at line 217 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingViewTransferHandler.java
+
+                                        view.clearSelection();
+                                        view.addToSelection(importedFigures);
+                                        transferFigures.addAll(importedFigures);
+                                        moveToDropPoint(comp, transferFigures, dropPoint);
+                                        drawing.fireUndoableEditHappened(new AbstractUndoableEdit() {
+                                            private static final long serialVersionUID = 1L;
+
+                                            @Override
+                                            public String getPresentationName() {
+                                                ResourceBundleUtil labels = ResourceBundleUtil.getBundle(
+                                                        "org.jhotdraw.draw.Labels");
+                                                return labels.getString("edit.paste.text");
+                                            }
+
+                                            @Override
+                                            public void undo() throws CannotUndoException {
+                                                super.undo();
+                                                drawing.removeAll(importedFigures);
+                                            }
+
+                                            @Override
+                                            public void redo() throws CannotRedoException {
+                                                super.redo();
+                                                drawing.addAll(importedFigures);
+                                            }
+                                        });
+
+=====================================================================
+Found a 26 line (112 tokens) duplication in the following files: 
+Starting at line 153 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingViewTransferHandler.java
+Starting at line 217 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingViewTransferHandler.java
+
+                                        view.clearSelection();
+                                        view.addToSelection(importedFigures);
+                                        transferFigures.addAll(importedFigures);
+                                        moveToDropPoint(comp, transferFigures, dropPoint);
+                                        drawing.fireUndoableEditHappened(new AbstractUndoableEdit() {
+                                            private static final long serialVersionUID = 1L;
+
+                                            @Override
+                                            public String getPresentationName() {
+                                                ResourceBundleUtil labels = ResourceBundleUtil.getBundle(
+                                                        "org.jhotdraw.draw.Labels");
+                                                return labels.getString("edit.paste.text");
+                                            }
+
+                                            @Override
+                                            public void undo() throws CannotUndoException {
+                                                super.undo();
+                                                drawing.removeAll(importedFigures);
+                                            }
+
+                                            @Override
+                                            public void redo() throws CannotRedoException {
+                                                super.redo();
+                                                drawing.addAll(importedFigures);
+                                            }
+                                        });
+
+=====================================================================
+Found a 12 line (111 tokens) duplication in the following files: 
+Starting at line 108 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+Starting at line 492 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+
+                    String[] paragraphs = getText().split("\n"); //Strings.split(getText(), '\n');
+                    for (int i = 0; i < paragraphs.length; i++) {
+                        if (paragraphs[i].length() == 0) {
+                            paragraphs[i] = " ";
+                        }
+                        AttributedString as = new AttributedString(paragraphs[i]);
+                        as.addAttribute(TextAttribute.FONT, font);
+                        if (isUnderlined) {
+                            as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
+                        }
+                        int tabCount = paragraphs[i].split("\t").length - 1;
+                        Rectangle2D.Double paragraphBounds = drawParagraph(g, as.getIterator(), verticalPos, maxVerticalPos, leftMargin, rightMargin, tabStops, tabCount);
+
+=====================================================================
+Found a 10 line (111 tokens) duplication in the following files: 
+Starting at line 222 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractHandle.java
+Starting at line 245 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractHandle.java
+
+            r.grow(1, 1);
+            Path2D.Double p = new Path2D.Double();
+            p.moveTo(r.x + r.width / 2f, r.y);
+            p.lineTo(r.x + r.width, r.y + r.height / 2f);
+            p.lineTo(r.x + r.width / 2f, r.y + r.height);
+            p.lineTo(r.x, r.y + r.height / 2f);
+            p.closePath();
+            g.setColor(stroke);
+            g.fill(p);
+        }
+
+=====================================================================
+Found a 21 line (110 tokens) duplication in the following files: 
+Starting at line 41 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/CurvedLiner.java
+Starting at line 41 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/ElbowLiner.java
+
+    public CurvedLiner(double slantSize) {
+        this.shoulderSize = slantSize;
+    }
+
+    @Override
+    public Collection<Handle> createHandles(BezierPath path) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void lineout(ConnectionFigure figure) {
+        BezierPath path = ((LineConnectionFigure) figure).getBezierPath();
+        Connector start = figure.getStartConnector();
+        Connector end = figure.getEndConnector();
+        if (start == null || end == null || path == null) {
+            return;
+        }
+        // Special treatment if the connection connects the same figure
+        if (figure.getStartFigure() == figure.getEndFigure()) {
+            // Ensure path has exactly 4 nodes
+            while (path.size() < 4) {
+
+=====================================================================
+Found a 23 line (109 tokens) duplication in the following files: 
+Starting at line 90 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/SerializationInputOutputFormat.java
+Starting at line 105 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/TextInputFormat.java
+
+    }
+
+    @Override
+    public JComponent getInputFormatAccessory() {
+        return null;
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing) throws IOException {
+        read(new File(uri), drawing);
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing, boolean replace) throws IOException {
+        read(new File(uri), drawing, replace);
+    }
+
+    public void read(File file, Drawing drawing) throws IOException {
+        read(file, drawing, true);
+    }
+
+    public void read(File file, Drawing drawing, boolean replace) throws IOException {
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
+
+=====================================================================
+Found a 27 line (108 tokens) duplication in the following files: 
+Starting at line 40 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/TranslationDirection.java
+Starting at line 74 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/TranslationDirection.java
+
+        int dy = endPoint.y - startPoint.y;
+        if (dx == 0) {
+            if (dy == 0) {
+                return null;
+            } else if (dy > 0) {
+                return SOUTH;
+            } else {
+                return NORTH;
+            }
+        } else if (dx > 0) {
+            if (dy == 0) {
+                return EAST;
+            } else if (dy > 0) {
+                return SOUTH_EAST;
+            } else {
+                return NORTH_EAST;
+            }
+        } else {
+            if (dy == 0) {
+                return WEST;
+            } else if (dy > 0) {
+                return SOUTH_WEST;
+            } else {
+                return NORTH_WEST;
+            }
+        }
+    }
+
+=====================================================================
+Found a 55 line (108 tokens) duplication in the following files: 
+Starting at line 82 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AbstractDrawingEditorAction.java
+Starting at line 129 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AbstractSelectedAction.java
+
+        return getView().getDrawing();
+    }
+
+    /**
+     * Updates the enabled state of this action to reflect the enabled state
+     * of the active {@code DrawingView}. If no drawing view is active, this
+     * action is disabled.
+     */
+    protected void fireUndoableEditHappened(UndoableEdit edit) {
+        getDrawing().fireUndoableEditHappened(edit);
+    }
+
+    /**
+     * By default, the enabled state of this action is updated to reflect
+     * the enabled state of the active {@code DrawingView}.
+     * Since this is not always necessary, and since many listening actions
+     * may considerably slow down the drawing editor, you can switch this
+     * behavior off here.
+     *
+     * @param newValue Specify false to prevent automatic updating of the
+     * enabled state.
+     */
+    public void setUpdateEnabledState(boolean newValue) {
+        // Note: eventHandler != null yields true, if we are currently updating
+        // the enabled state.
+        if (eventHandler != null != newValue) {
+            if (newValue) {
+                eventHandler = new EventHandler();
+                registerEventHandler();
+            } else {
+                unregisterEventHandler();
+                eventHandler = null;
+            }
+        }
+        if (newValue) {
+            updateEnabledState();
+        }
+    }
+
+    /**
+     * Returns true, if this action automatically updates its enabled
+     * state to reflect the enabled state of the active {@code DrawingView}.
+     */
+    public boolean isUpdatEnabledState() {
+        return eventHandler != null;
+    }
+
+    /**
+     * Unregisters the event handler from the drawing editor and the
+     * active drawing view.
+     */
+    private void unregisterEventHandler() {
+        if (editor != null) {
+            editor.removePropertyChangeListener(eventHandler);
+        }
+
+=====================================================================
+Found a 9 line (108 tokens) duplication in the following files: 
+Starting at line 80 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/RoundRectangleRadiusHandle.java
+Starting at line 95 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/RoundRectangleRadiusHandle.java
+
+    public void trackStep(Point anchor, Point lead, int modifiersEx) {
+        int dx = lead.x - anchor.x;
+        int dy = lead.y - anchor.y;
+        RoundRectangleFigure owner = (RoundRectangleFigure) getOwner();
+        Rectangle r = view.drawingToView(owner.getBounds());
+        Point viewArc = new Point(
+                Geom.range(0, r.width, 2 * (originalArc.x / 2 + dx)),
+                Geom.range(0, r.height, 2 * (originalArc.y / 2 + dy)));
+        Point2D.Double arc = view.viewToDrawing(viewArc);
+
+=====================================================================
+Found a 19 line (107 tokens) duplication in the following files: 
+Starting at line 103 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+Starting at line 104 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/QuadTreeCompositeFigure.java
+
+    public java.util.List<Figure> getChildren(Rectangle2D.Double bounds) {
+        return new LinkedList<>(quadTree.findInside(bounds));
+    }
+
+    @Override
+    public java.util.List<Figure> getChildren() {
+        return Collections.unmodifiableList(children);
+    }
+
+    @Override
+    public Figure findFigureInside(Point2D.Double p) {
+        Collection<Figure> c = quadTree.findContains(p);
+        for (Figure f : getFiguresFrontToBack()) {
+            if (c.contains(f) && f.contains(p)) {
+                return f.findFigureInside(p);
+            }
+        }
+        return null;
+    }
+
+=====================================================================
+Found a 21 line (107 tokens) duplication in the following files: 
+Starting at line 270 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/ImageOutputFormat.java
+Starting at line 122 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/print/DrawingPageable.java
+
+    }
+
+    protected void setRenderingHints(Graphics2D g) {
+        g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
+                RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
+                RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
+                RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,
+                RenderingHints.VALUE_STROKE_NORMALIZE);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    }
+}
+
+=====================================================================
+Found a 21 line (106 tokens) duplication in the following files: 
+Starting at line 246 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 236 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+                editor.setActiveView(AbstractDrawingView.this);
+            }
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+        }
+
+        @Override
+        public void handleRequestRemove(HandleEvent e) {
+            selectionHandles.remove(e.getHandle());
+            e.getHandle().dispose();
+            invalidateHandles();
+            repaint(e.getInvalidatedArea());
+        }
+
+        @Override
+        public void attributeChanged(FigureEvent e) {
+            if (e.getSource() == drawing) {
+                AttributeKey<?> a = e.getAttribute();
+                if (a.equals(CANVAS_HEIGHT) || a.equals(CANVAS_WIDTH)) {
+
+=====================================================================
+Found a 17 line (106 tokens) duplication in the following files: 
+Starting at line 153 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+Starting at line 153 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/QuadTreeCompositeFigure.java
+
+    public Figure findFigureExcept(Point2D.Double p, Figure ignore) {
+        Collection<Figure> c = quadTree.findContains(p);
+        switch (c.size()) {
+            case 0:
+                return null;
+            case 1: 
+                Figure f = c.iterator().next();
+                return (f == ignore || !f.contains(p)) ? null : f;
+            default: 
+                for (Figure f2 : getFiguresFrontToBack()) {
+                    if (f2 != ignore && f2.contains(p)) {
+                        return f2;
+                    }
+                }
+                return null;
+        }
+    }
+
+=====================================================================
+Found a 17 line (106 tokens) duplication in the following files: 
+Starting at line 172 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+Starting at line 171 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/QuadTreeCompositeFigure.java
+
+    public Figure findFigureExcept(Point2D.Double p, Collection<? extends Figure> ignore) {
+        Collection<Figure> c = quadTree.findContains(p);
+        switch (c.size()) {
+            case 0:
+                return null;
+            case 1:
+                Figure f = c.iterator().next();
+                return (!ignore.contains(f) || !f.contains(p)) ? null : f;
+            default: 
+                for (Figure f2 : getFiguresFrontToBack()) {
+                    if (!ignore.contains(f2) && f2.contains(p)) {
+                        return f2;
+                    }
+                }
+                return null;
+        }
+    }
+
+=====================================================================
+Found a 20 line (106 tokens) duplication in the following files: 
+Starting at line 103 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AttributeAction.java
+Starting at line 85 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/DrawingAttributeAction.java
+
+        UndoableEdit edit = new AbstractUndoableEdit() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getPresentationName() {
+                String name = (String) getValue(ActionUtil.UNDO_PRESENTATION_NAME_KEY);
+                if (name == null) {
+                    name = (String) getValue(AbstractAction.NAME);
+                }
+                if (name == null) {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    name = labels.getString("attribute.text");
+                }
+                return name;
+            }
+
+            @Override
+            public void undo() {
+                super.undo();
+                Iterator<Object> iRestore = restoreData.iterator();
+
+=====================================================================
+Found a 20 line (106 tokens) duplication in the following files: 
+Starting at line 95 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AttributeToggler.java
+Starting at line 85 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/DrawingAttributeAction.java
+
+        UndoableEdit edit = new AbstractUndoableEdit() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getPresentationName() {
+                String name = (String) getValue(ActionUtil.UNDO_PRESENTATION_NAME_KEY);
+                if (name == null) {
+                    name = (String) getValue(AbstractAction.NAME);
+                }
+                if (name == null) {
+                    ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+                    name = labels.getString("attribute.text");
+                }
+                return name;
+            }
+
+            @Override
+            public void undo() {
+                super.undo();
+                Iterator<Object> iRestore = restoreData.iterator();
+
+=====================================================================
+Found a 16 line (105 tokens) duplication in the following files: 
+Starting at line 58 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/DrawingColorChooserAction.java
+Starting at line 64 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/EditorColorChooserAction.java
+
+        super(editor, key, name, icon, fixedAttributes);
+    }
+
+    @Override
+    public void actionPerformed(java.awt.event.ActionEvent e) {
+        if (colorChooser == null) {
+            colorChooser = new JColorChooser();
+        }
+        Color initialColor = getInitialColor();
+        // FIXME - Reuse colorChooser object instead of calling static method here.
+        ResourceBundleUtil labels
+                = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+        Color chosenColor = JColorChooser.showDialog((Component) e.getSource(), labels.getString("attribute.color.text"), initialColor);
+        if (chosenColor != null) {
+            HashMap<AttributeKey<?>, Object> attr = new HashMap<>(attributes);
+            attr.put(key, chosenColor);
+
+=====================================================================
+Found a 18 line (105 tokens) duplication in the following files: 
+Starting at line 181 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 199 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TriangleFigure.java
+
+        return diamond.contains(p);
+    }
+
+    @Override
+    public void setBounds(Point2D.Double anchor, Point2D.Double lead) {
+        rectangle.x = Math.min(anchor.x, lead.x);
+        rectangle.y = Math.min(anchor.y, lead.y);
+        rectangle.width = Math.max(0.1, Math.abs(lead.x - anchor.x));
+        rectangle.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Moves the Figure to a new location.
+     *
+     * @param tx the transformation matrix.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+
+=====================================================================
+Found a 14 line (105 tokens) duplication in the following files: 
+Starting at line 59 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/CurvedLiner.java
+Starting at line 134 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/SlantedLiner.java
+
+        if (figure.getStartFigure() == figure.getEndFigure()) {
+            // Ensure path has exactly 4 nodes
+            while (path.size() < 4) {
+                path.add(1, new BezierPath.Node(0, 0));
+            }
+            while (path.size() > 4) {
+                path.remove(1);
+            }
+            Point2D.Double sp = start.findStart(figure);
+            Point2D.Double ep = end.findEnd(figure);
+            Rectangle2D.Double sb = start.getBounds();
+            Rectangle2D.Double eb = end.getBounds();
+            int soutcode = sb.outcode(sp);
+            if (soutcode == 0) {
+
+=====================================================================
+Found a 14 line (102 tokens) duplication in the following files: 
+Starting at line 449 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+Starting at line 540 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+                    gBuf.copyArea(Math.max(0, -shift.x), Math.max(0, -shift.y), drawingBufferV.getWidth() - Math.abs(shift.x), drawingBufferV.getHeight() - Math.abs(shift.y), shift.x, shift.y);
+                    shift.x = shift.y = 0;
+                }
+                // Clip the dirty area
+                gBuf.translate(-bufferedArea.x, -bufferedArea.y);
+                gBuf.clip(dirtyArea);
+                // Clear the dirty area
+                gBuf.setBackground(new Color(0x0, true));
+                gBuf.clearRect(dirtyArea.x, dirtyArea.y, dirtyArea.width, dirtyArea.height);
+                gBuf.setComposite(AlphaComposite.SrcOver);
+                // Repaint the dirty area
+                drawDrawing(gBuf);
+                gBuf.dispose();
+            }
+
+=====================================================================
+Found a 13 line (102 tokens) duplication in the following files: 
+Starting at line 133 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 162 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+        double grow = AttributeKeys.getPerpendicularHitGrowth(this, 1.0);
+        if (grow != 0d) {
+            double w = r.width / 2d;
+            double h = r.height / 2d;
+            double lineLength = Math.sqrt(w * w + h * h);
+            double scale = grow / lineLength;
+            double yb = scale * w;
+            double xa = scale * h;
+            double growx, growy;
+            growx = ((yb * yb) / xa + xa);
+            growy = ((xa * xa) / yb + yb);
+            Geom.grow(r, growx, growy);
+        }
+
+=====================================================================
+Found a 20 line (102 tokens) duplication in the following files: 
+Starting at line 42 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/CurvedLiner.java
+Starting at line 42 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/SlantedLiner.java
+
+        this.shoulderSize = slantSize;
+    }
+
+    @Override
+    public Collection<Handle> createHandles(BezierPath path) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void lineout(ConnectionFigure figure) {
+        BezierPath path = ((LineConnectionFigure) figure).getBezierPath();
+        Connector start = figure.getStartConnector();
+        Connector end = figure.getEndConnector();
+        if (start == null || end == null || path == null) {
+            return;
+        }
+        // Special treatment if the connection connects the same figure
+        if (figure.getStartFigure() == figure.getEndFigure()) {
+            // Ensure path has exactly 4 nodes
+            while (path.size() < 4) {
+
+=====================================================================
+Found a 17 line (101 tokens) duplication in the following files: 
+Starting at line 134 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/QuadTreeDrawing.java
+Starting at line 133 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/QuadTreeCompositeFigure.java
+
+    public Figure findFigure(Point2D.Double p) {
+        Collection<Figure> c = quadTree.findContains(p);
+        switch (c.size()) {
+            case 0:
+                return null;
+            case 1:
+                Figure f = c.iterator().next();
+                return (f.contains(p)) ? f : null;
+            default: 
+                for (Figure f2 : getFiguresFrontToBack()) {
+                    if (c.contains(f2) && f2.contains(p)) {
+                        return f2;
+                    }
+                }
+                return null;
+        }
+    }
+
+=====================================================================
+Found a 8 line (101 tokens) duplication in the following files: 
+Starting at line 222 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractHandle.java
+Starting at line 233 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractHandle.java
+Starting at line 245 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractHandle.java
+
+            r.grow(1, 1);
+            Path2D.Double p = new Path2D.Double();
+            p.moveTo(r.x + r.width / 2f, r.y);
+            p.lineTo(r.x + r.width, r.y + r.height / 2f);
+            p.lineTo(r.x + r.width / 2f, r.y + r.height);
+            p.lineTo(r.x, r.y + r.height / 2f);
+            p.closePath();
+            g.setColor(stroke);
+
+=====================================================================
+Found a 35 line (101 tokens) duplication in the following files: 
+Starting at line 78 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/ImageOutputFormat.java
+Starting at line 159 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/SerializationInputOutputFormat.java
+
+    }
+
+    @Override
+    public String getFileExtension() {
+        return fileExtension;
+    }
+
+    @Override
+    public JComponent getOutputFormatAccessory() {
+        return null;
+    }
+
+    @Override
+    public void write(URI uri, Drawing drawing) throws IOException {
+        write(new File(uri), drawing);
+    }
+
+    /**
+     * Writes the drawing to the specified file.
+     * This method ensures that all figures of the drawing are visible on
+     * the image.
+     */
+    public void write(File file, Drawing drawing) throws IOException {
+        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
+            write(out, drawing);
+        }
+    }
+
+    /**
+     * Writes the drawing to the specified output stream.
+     * This method ensures that all figures of the drawing are visible on
+     * the image.
+     */
+    @Override
+    public void write(OutputStream out, Drawing drawing) throws IOException {
+
+=====================================================================
+Found a 19 line (101 tokens) duplication in the following files: 
+Starting at line 201 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/DefaultHandleTracker.java
+Starting at line 107 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/DefaultSelectAreaTracker.java
+
+        updateCursor(editor.findView((Container) evt.getSource()), point);
+        DrawingView view = editor.findView((Container) evt.getSource());
+        updateCursor(view, point);
+        if (view == null || editor.getActiveView() != view) {
+            clearHoverHandles();
+        } else {
+            // Search first, if one of the selected figures contains
+            // the current mouse location. Only then search for other
+            // figures. This search sequence is consistent with the
+            // search sequence of the SelectionTool.
+            Figure figure = null;
+            Point2D.Double p = view.viewToDrawing(point);
+            for (Figure f : view.getSelectedFigures()) {
+                if (f.contains(p)) {
+                    figure = f;
+                }
+            }
+            if (figure == null) {
+                figure = view.findFigure(point);
+
+=====================================================================
+Found a 13 line (98 tokens) duplication in the following files: 
+Starting at line 64 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 133 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+        double grow = AttributeKeys.getPerpendicularFillGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
+        if (grow != 0d) {
+            double w = r.width / 2d;
+            double h = r.height / 2d;
+            double lineLength = Math.sqrt(w * w + h * h);
+            double scale = grow / lineLength;
+            double yb = scale * w;
+            double xa = scale * h;
+            double growx, growy;
+            growx = ((yb * yb) / xa + xa);
+            growy = ((xa * xa) / yb + yb);
+            Geom.grow(r, growx, growy);
+        }
+
+=====================================================================
+Found a 18 line (98 tokens) duplication in the following files: 
+Starting at line 157 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/DOMStorableInputOutputFormat.java
+Starting at line 110 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/TextInputFormat.java
+
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing) throws IOException {
+        read(new File(uri), drawing);
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing, boolean replace) throws IOException {
+        read(new File(uri), drawing, replace);
+    }
+
+    public void read(File file, Drawing drawing) throws IOException {
+        read(file, drawing, true);
+    }
+
+    public void read(File file, Drawing drawing, boolean replace) throws IOException {
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
+
+=====================================================================
+Found a 21 line (97 tokens) duplication in the following files: 
+Starting at line 967 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 1320 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+                for (int i = 0; i
+                        < deletedFigureIndices.length; i++) {
+                    d.add(deletedFigureIndices[i], deletedFigures.get(i));
+                }
+                addToSelection(deletedFigures);
+            }
+
+            @Override
+            public void redo() throws CannotRedoException {
+                super.redo();
+                for (int i = 0; i
+                        < deletedFigureIndices.length; i++) {
+                    drawing.remove(deletedFigures.get(i));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void duplicate() {
+        Collection<Figure> sorted = drawing.sort(getSelectedFigures());
+
+=====================================================================
+Found a 15 line (95 tokens) duplication in the following files: 
+Starting at line 86 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractRotateHandle.java
+Starting at line 182 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+    }
+
+    protected Rectangle2D.Double getTransformedBounds() {
+        Figure owner = getOwner();
+        Rectangle2D.Double bounds = owner.getBounds();
+        if (owner.get(TRANSFORM) != null) {
+            Rectangle2D r = owner.get(TRANSFORM).
+                    createTransformedShape(bounds).getBounds2D();
+            bounds.x = r.getX();
+            bounds.y = r.getY();
+            bounds.width = r.getWidth();
+            bounds.height = r.getHeight();
+        }
+        return bounds;
+    }
+
+=====================================================================
+Found a 48 line (94 tokens) duplication in the following files: 
+Starting at line 141 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AbstractDrawingViewAction.java
+Starting at line 133 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AbstractSelectedAction.java
+
+        setEditor(null);
+    }
+
+    /**
+     * By default, the enabled state of this action is updated to reflect
+     * the enabled state of the active {@code DrawingView}.
+     * Since this is not always necessary, and since many listening actions
+     * may considerably slow down the drawing editor, you can switch this
+     * behavior off here.
+     *
+     * @param newValue Specify false to prevent automatic updating of the
+     * enabled state.
+     */
+    public void setUpdateEnabledState(boolean newValue) {
+        // Note: eventHandler != null yields true, if we are currently updating
+        // the enabled state.
+        if (eventHandler != null != newValue) {
+            if (newValue) {
+                eventHandler = new EventHandler();
+                registerEventHandler();
+            } else {
+                unregisterEventHandler();
+                eventHandler = null;
+            }
+        }
+        if (newValue) {
+            updateEnabledState();
+        }
+    }
+
+    /**
+     * Returns true, if this action automatically updates its enabled
+     * state to reflect the enabled state of the active {@code DrawingView}.
+     */
+    public boolean isUpdatEnabledState() {
+        return eventHandler != null;
+    }
+
+    /**
+     * Unregisters the event handler from the drawing editor and the
+     * active drawing view.
+     */
+    private void unregisterEventHandler() {
+        if (editor != null) {
+            editor.removePropertyChangeListener(eventHandler);
+        }
+        if (activeView != null) {
+            activeView.removePropertyChangeListener(eventHandler);
+
+=====================================================================
+Found a 7 line (94 tokens) duplication in the following files: 
+Starting at line 98 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+Starting at line 486 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+
+            if (leftMargin < rightMargin) {
+                //float tabWidth = (float) (getTabSize() * g.getFontMetrics(font).charWidth('m'));
+                float tabWidth = (float) (getTabSize() * font.getStringBounds("m", getFontRenderContext()).getWidth());
+                float[] tabStops = new float[(int) (textRect.width / tabWidth)];
+                for (int i = 0; i < tabStops.length; i++) {
+                    tabStops[i] = (float) (textRect.x + (int) (tabWidth * (i + 1)));
+                }
+
+=====================================================================
+Found a 19 line (94 tokens) duplication in the following files: 
+Starting at line 336 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 684 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(Math.max(r.x + 1, p.x), r.y + r.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 19 line (93 tokens) duplication in the following files: 
+Starting at line 107 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/ImageFigure.java
+Starting at line 44 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/RectangleFigure.java
+
+    }
+
+    @Override
+    protected void drawStroke(Graphics2D g) {
+        Rectangle2D.Double r = (Rectangle2D.Double) rectangle.clone();
+        double grow = AttributeKeys.getPerpendicularDrawGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
+        Geom.grow(r, grow, grow);
+        g.draw(r);
+    }
+
+    // SHAPE AND BOUNDS
+    @Override
+    public Rectangle2D.Double getBounds() {
+        Rectangle2D.Double bounds = (Rectangle2D.Double) rectangle.clone();
+        return bounds;
+    }
+
+    @Override
+    public Rectangle2D.Double getFigureDrawingArea() {
+
+=====================================================================
+Found a 14 line (89 tokens) duplication in the following files: 
+Starting at line 695 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractCompositeFigure.java
+Starting at line 717 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractCompositeFigure.java
+Starting at line 388 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/LabeledLineConnectionFigure.java
+Starting at line 410 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/LabeledLineConnectionFigure.java
+
+    protected void fireFigureAdded(Figure f, int zIndex) {
+        CompositeFigureEvent event = null;
+        // Notify all listeners that have registered interest for
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == CompositeFigureListener.class) {
+                // Lazily create the event:
+                if (event == null) {
+                    event = new CompositeFigureEvent(this, f, f.getDrawingArea(), zIndex);
+                }
+                ((CompositeFigureListener) listeners[i + 1]).figureAdded(event);
+
+=====================================================================
+Found a 15 line (89 tokens) duplication in the following files: 
+Starting at line 151 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractFigure.java
+Starting at line 174 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractFigure.java
+Starting at line 197 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractFigure.java
+
+    protected void fireFigureRequestRemove() {
+        if (listenerList.getListenerCount() > 0) {
+            FigureEvent event = null;
+            // Notify all listeners that have registered interest for
+            // Guaranteed to return a non-null array
+            Object[] listeners = listenerList.getListenerList();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for (int i = listeners.length - 2; i >= 0; i -= 2) {
+                if (listeners[i] == FigureListener.class) {
+                    // Lazily create the event:
+                    if (event == null) {
+                        event = new FigureEvent(this, getBounds());
+                    }
+                    ((FigureListener) listeners[i + 1]).figureRequestRemove(event);
+
+=====================================================================
+Found a 12 line (88 tokens) duplication in the following files: 
+Starting at line 133 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractRotateHandle.java
+Starting at line 122 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierScaleHandle.java
+
+        transform.rotate(currentTheta);
+        transform.translate(-center.x, -center.y);
+        getOwner().willChange();
+        getOwner().restoreTransformTo(restoreData);
+        getOwner().transform(transform);
+        getOwner().changed();
+    }
+
+    @Override
+    public void trackEnd(Point anchor, Point lead, int modifiersEx) {
+        view.getDrawing().fireUndoableEditHappened(
+                new TransformRestoreEdit(getOwner(), restoreData, getOwner().getTransformRestoreData()));
+
+=====================================================================
+Found a 20 line (87 tokens) duplication in the following files: 
+Starting at line 109 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AttributeToggler.java
+Starting at line 89 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/SelectionColorChooserHandler.java
+
+            }
+
+            @Override
+            public void undo() {
+                super.undo();
+                Iterator<Object> iRestore = restoreData.iterator();
+                for (Figure figure : selectedFigures) {
+                    figure.willChange();
+                    figure.restoreAttributesTo(iRestore.next());
+                    figure.changed();
+                }
+            }
+
+            @Override
+            public void redo() {
+                super.redo();
+                for (Figure figure : selectedFigures) {
+                    //restoreData.add(figure.getAttributesRestoreData());
+                    figure.willChange();
+                    figure.set(key, newValue);
+
+=====================================================================
+Found a 22 line (87 tokens) duplication in the following files: 
+Starting at line 284 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/ConnectionTool.java
+Starting at line 240 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/CreationTool.java
+
+            final Figure addedFigure = createdFigure;
+            final Drawing addedDrawing = getDrawing();
+            getDrawing().fireUndoableEditHappened(new AbstractUndoableEdit() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getPresentationName() {
+                    return presentationName;
+                }
+
+                @Override
+                public void undo() throws CannotUndoException {
+                    super.undo();
+                    addedDrawing.remove(addedFigure);
+                }
+
+                @Override
+                public void redo() throws CannotRedoException {
+                    super.redo();
+                    addedDrawing.add(addedFigure);
+                }
+            });
+
+=====================================================================
+Found a 14 line (86 tokens) duplication in the following files: 
+Starting at line 389 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 683 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(r.x, Math.min(r.y + r.height - 1, p.y)),
+                    new Point2D.Double(r.x + r.width, r.y + r.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+
+=====================================================================
+Found a 14 line (86 tokens) duplication in the following files: 
+Starting at line 443 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 683 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(Math.min(r.x + r.width - 1, p.x), Math.min(r.y + r.height - 1, p.y)),
+                    new Point2D.Double(r.x + r.width, r.y + r.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+
+=====================================================================
+Found a 46 line (85 tokens) duplication in the following files: 
+Starting at line 91 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AbstractDrawingEditorAction.java
+Starting at line 141 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AbstractDrawingViewAction.java
+
+        getDrawing().fireUndoableEditHappened(edit);
+    }
+
+    /**
+     * By default, the enabled state of this action is updated to reflect
+     * the enabled state of the active {@code DrawingView}.
+     * Since this is not always necessary, and since many listening actions
+     * may considerably slow down the drawing editor, you can switch this
+     * behavior off here.
+     *
+     * @param newValue Specify false to prevent automatic updating of the
+     * enabled state.
+     */
+    public void setUpdateEnabledState(boolean newValue) {
+        // Note: eventHandler != null yields true, if we are currently updating
+        // the enabled state.
+        if (eventHandler != null != newValue) {
+            if (newValue) {
+                eventHandler = new EventHandler();
+                registerEventHandler();
+            } else {
+                unregisterEventHandler();
+                eventHandler = null;
+            }
+        }
+        if (newValue) {
+            updateEnabledState();
+        }
+    }
+
+    /**
+     * Returns true, if this action automatically updates its enabled
+     * state to reflect the enabled state of the active {@code DrawingView}.
+     */
+    public boolean isUpdatEnabledState() {
+        return eventHandler != null;
+    }
+
+    /**
+     * Unregisters the event handler from the drawing editor and the
+     * active drawing view.
+     */
+    private void unregisterEventHandler() {
+        if (editor != null) {
+            editor.removePropertyChangeListener(eventHandler);
+        }
+
+=====================================================================
+Found a 9 line (85 tokens) duplication in the following files: 
+Starting at line 56 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 153 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+    protected void drawFill(Graphics2D g) {
+        Rectangle2D.Double r = (Rectangle2D.Double) rectangle.clone();
+        if (get(IS_QUADRATIC)) {
+            double side = Math.max(r.width, r.height);
+            r.x -= (side - r.width) / 2;
+            r.y -= (side - r.height) / 2;
+            r.width = r.height = side;
+        }
+        double grow = AttributeKeys.getPerpendicularFillGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
+
+=====================================================================
+Found a 14 line (84 tokens) duplication in the following files: 
+Starting at line 225 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractFigure.java
+Starting at line 289 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/AbstractFigure.java
+
+        if (listenerList.getListenerCount() > 0) {
+            FigureEvent event = null;
+            // Notify all listeners that have registered interest for
+            // Guaranteed to return a non-null array
+            Object[] listeners = listenerList.getListenerList();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for (int i = listeners.length - 2; i >= 0; i -= 2) {
+                if (listeners[i] == FigureListener.class) {
+                    // Lazily create the event:
+                    if (event == null) {
+                        event = new FigureEvent(this, changedArea);
+                    }
+                    ((FigureListener) listeners[i + 1]).figureChanged(event);
+
+=====================================================================
+Found a 9 line (84 tokens) duplication in the following files: 
+Starting at line 56 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 87 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+    protected void drawFill(Graphics2D g) {
+        Rectangle2D.Double r = (Rectangle2D.Double) rectangle.clone();
+        if (get(IS_QUADRATIC)) {
+            double side = Math.max(r.width, r.height);
+            r.x -= (side - r.width) / 2;
+            r.y -= (side - r.height) / 2;
+            r.width = r.height = side;
+        }
+        double grow = AttributeKeys.getPerpendicularFillGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
+
+=====================================================================
+Found a 20 line (84 tokens) duplication in the following files: 
+Starting at line 270 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/DefaultHandleTracker.java
+Starting at line 189 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/DefaultSelectAreaTracker.java
+
+            if (hoverFigure != null) {
+                hoverHandles.addAll(hoverFigure.createHandles(-1));
+                for (Handle h : hoverHandles) {
+                    h.setView(view);
+                    if (r == null) {
+                        r = h.getDrawingArea();
+                    } else {
+                        r.add(h.getDrawingArea());
+                    }
+                }
+            }
+            if (r != null) {
+                r.grow(1, 1);
+                fireAreaInvalidated(r);
+            }
+        }
+    }
+
+    @Override
+    public void setHandles(Handle handle, Collection<Handle> compatibleHandles) {
+
+=====================================================================
+Found a 15 line (83 tokens) duplication in the following files: 
+Starting at line 51 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/DrawingColorIcon.java
+Starting at line 51 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/EditorColorIcon.java
+Starting at line 52 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/SelectionColorIcon.java
+
+    public DrawingColorIcon(
+            DrawingEditor editor,
+            AttributeKey<Color> key,
+            Image image,
+            Shape colorShape) {
+        super(image);
+        this.editor = editor;
+        this.key = key;
+        this.colorShape = colorShape;
+    }
+
+    @Override
+    public void paintIcon(java.awt.Component c, java.awt.Graphics gr, int x, int y) {
+        Graphics2D g = (Graphics2D) gr;
+        super.paintIcon(c, g, x, y);
+
+=====================================================================
+Found a 19 line (83 tokens) duplication in the following files: 
+Starting at line 189 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 125 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/EllipseFigure.java
+Starting at line 148 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/ImageFigure.java
+Starting at line 85 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/RectangleFigure.java
+Starting at line 170 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/RoundRectangleFigure.java
+
+        rectangle.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Moves the Figure to a new location.
+     *
+     * @param tx the transformation matrix.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead));
+    }
+
+    @Override
+    public void restoreTransformTo(Object geometry) {
+
+=====================================================================
+Found a 8 line (82 tokens) duplication in the following files: 
+Starting at line 59 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/DragHandle.java
+Starting at line 93 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/MoveHandle.java
+
+        Point2D.Double newPoint = view.getConstrainer() == null ? view.viewToDrawing(lead) : view.getConstrainer().constrainPoint(view.viewToDrawing(lead));
+        AffineTransform tx = new AffineTransform();
+        tx.translate(newPoint.x - oldPoint.x, newPoint.y - oldPoint.y);
+        f.willChange();
+        f.transform(tx);
+        f.changed();
+        oldPoint = newPoint;
+    }
+
+=====================================================================
+Found a 16 line (82 tokens) duplication in the following files: 
+Starting at line 300 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 656 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    new Point2D.Double(Math.max(sb.x + 1, p.x), sb.y + sb.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Rectangle2D.Double r = getOwner().getBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                case KeyEvent.VK_DOWN:
+                    evt.consume();
+                    break;
+                case KeyEvent.VK_LEFT:
+
+=====================================================================
+Found a 14 line (82 tokens) duplication in the following files: 
+Starting at line 380 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/AbstractTool.java
+Starting at line 421 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/tool/AbstractTool.java
+
+    protected void fireAreaInvalidated(Rectangle invalidatedArea) {
+        ToolEvent event = null;
+        // Notify all listeners that have registered interest for
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ToolListener.class) {
+                // Lazily create the event:
+                if (event == null) {
+                    event = new ToolEvent(this, getView(), invalidatedArea);
+                }
+                ((ToolListener) listeners[i + 1]).areaInvalidated(event);
+
+=====================================================================
+Found a 19 line (81 tokens) duplication in the following files: 
+Starting at line 117 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/AttributeAction.java
+Starting at line 89 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/SelectionColorChooserHandler.java
+
+            }
+
+            @Override
+            public void undo() {
+                super.undo();
+                Iterator<Object> iRestore = restoreData.iterator();
+                for (Figure figure : selectedFigures) {
+                    figure.willChange();
+                    figure.restoreAttributesTo(iRestore.next());
+                    figure.changed();
+                }
+            }
+
+            @Override
+            public void redo() {
+                super.redo();
+                for (Figure figure : selectedFigures) {
+                    //restoreData.add(figure.getAttributesRestoreData());
+                    figure.willChange();
+
+=====================================================================
+Found a 9 line (81 tokens) duplication in the following files: 
+Starting at line 56 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 125 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+    protected void drawFill(Graphics2D g) {
+        Rectangle2D.Double r = (Rectangle2D.Double) rectangle.clone();
+        if (get(IS_QUADRATIC)) {
+            double side = Math.max(r.width, r.height);
+            r.x -= (side - r.width) / 2;
+            r.y -= (side - r.height) / 2;
+            r.width = r.height = side;
+        }
+        double grow = AttributeKeys.getPerpendicularFillGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
+
+=====================================================================
+Found a 9 line (81 tokens) duplication in the following files: 
+Starting at line 87 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 125 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 153 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+
+    protected void drawStroke(Graphics2D g) {
+        Rectangle2D.Double r = (Rectangle2D.Double) rectangle.clone();
+        if (get(IS_QUADRATIC)) {
+            double side = Math.max(r.width, r.height);
+            r.x -= (side - r.width) / 2;
+            r.y -= (side - r.height) / 2;
+            r.width = r.height = side;
+        }
+        double grow = AttributeKeys.getPerpendicularDrawGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
+
+=====================================================================
+Found a 22 line (80 tokens) duplication in the following files: 
+Starting at line 36 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/DrawingColorChooserHandler.java
+Starting at line 38 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/action/SelectionColorChooserHandler.java
+
+    public DrawingColorChooserHandler(DrawingEditor editor, AttributeKey<Color> key, JColorChooser colorChooser, JPopupMenu popupMenu) {
+        super(editor);
+        this.key = key;
+        this.colorChooser = colorChooser;
+        this.popupMenu = popupMenu;
+        //colorChooser.addActionListener(this);
+        colorChooser.getSelectionModel().addChangeListener(this);
+        updateEnabledState();
+    }
+
+    @Override
+    public void actionPerformed(java.awt.event.ActionEvent evt) {
+        /*
+        if (evt.getActionCommand() == JColorChooser.APPROVE_SELECTION) {
+        applySelectedColorToFigures();
+        } else if (evt.getActionCommand() == JColorChooser.CANCEL_SELECTION) {
+        }*/
+        popupMenu.setVisible(false);
+    }
+
+    protected void applySelectedColorToFigures() {
+        final Drawing drawing = getView().getDrawing();
+
+=====================================================================
+Found a 13 line (80 tokens) duplication in the following files: 
+Starting at line 348 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+Starting at line 655 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/ResizeHandleKit.java
+
+                    new Point2D.Double(sb.x, Math.min(sb.y + sb.height - 1, p.y)),
+                    new Point2D.Double(sb.x + sb.width, sb.y + sb.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Rectangle2D.Double r = getOwner().getBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+
+=====================================================================
+Found a 15 line (79 tokens) duplication in the following files: 
+Starting at line 137 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/DOMStorableInputOutputFormat.java
+Starting at line 88 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/ImageOutputFormat.java
+Starting at line 169 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/SerializationInputOutputFormat.java
+
+    }
+
+    @Override
+    public void write(URI uri, Drawing drawing) throws IOException {
+        write(new File(uri), drawing);
+    }
+
+    public void write(File file, Drawing drawing) throws IOException {
+        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
+            write(out, drawing);
+        }
+    }
+
+    @Override
+    public void write(OutputStream out, Drawing drawing) throws IOException {
+
+=====================================================================
+Found a 19 line (79 tokens) duplication in the following files: 
+Starting at line 119 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/ImageInputFormat.java
+Starting at line 89 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/SerializationInputOutputFormat.java
+
+        return fileExtensions.clone();
+    }
+
+    @Override
+    public JComponent getInputFormatAccessory() {
+        return null;
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing) throws IOException {
+        read(new File(uri), drawing);
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing, boolean replace) throws IOException {
+        read(new File(uri), drawing, replace);
+    }
+
+    public void read(File file, Drawing drawing, boolean replace) throws IOException {
+
+=====================================================================
+Found a 14 line (78 tokens) duplication in the following files: 
+Starting at line 96 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractHandle.java
+Starting at line 126 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractHandle.java
+
+    protected void fireAreaInvalidated(Rectangle invalidatedArea) {
+        HandleEvent event = null;
+        // Notify all listeners that have registered interest for
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == HandleListener.class) {
+                // Lazily create the event:
+                if (event == null) {
+                    event = new HandleEvent(this, invalidatedArea);
+                }
+                ((HandleListener) listeners[i + 1]).areaInvalidated(event);
+
+=====================================================================
+Found a 18 line (78 tokens) duplication in the following files: 
+Starting at line 120 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/ImageInputFormat.java
+Starting at line 105 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/TextInputFormat.java
+
+    }
+
+    @Override
+    public JComponent getInputFormatAccessory() {
+        return null;
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing) throws IOException {
+        read(new File(uri), drawing);
+    }
+
+    @Override
+    public void read(URI uri, Drawing drawing, boolean replace) throws IOException {
+        read(new File(uri), drawing, replace);
+    }
+
+    public void read(File file, Drawing drawing, boolean replace) throws IOException {
+
+=====================================================================
+Found a 10 line (78 tokens) duplication in the following files: 
+Starting at line 122 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/SerializationInputOutputFormat.java
+Starting at line 147 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/io/SerializationInputOutputFormat.java
+
+            Drawing d = (Drawing) oin.readObject();
+            if (replace) {
+                for (Map.Entry<AttributeKey<?>, Object> e : d.getAttributes().entrySet()) {
+                    drawing.set((AttributeKey<Object>) e.getKey(), e.getValue());
+                }
+            }
+            for (Figure f : d.getChildren()) {
+                drawing.add(f);
+            }
+        } catch (ClassNotFoundException ex) {
+
+=====================================================================
+Found a 23 line (78 tokens) duplication in the following files: 
+Starting at line 177 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/CurvedLiner.java
+Starting at line 178 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/liner/ElbowLiner.java
+
+        }
+        path.invalidatePath();
+    }
+
+    @Override
+    public void read(DOMInput in) {
+    }
+
+    @Override
+    public void write(DOMOutput out) {
+    }
+
+    @Override
+    public Liner clone() {
+        try {
+            return (Liner) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            InternalError error = new InternalError(ex.getMessage());
+            error.initCause(ex);
+            throw error;
+        }
+    }
+}
+
+=====================================================================
+Found a 18 line (77 tokens) duplication in the following files: 
+Starting at line 69 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/AbstractRotateHandle.java
+Starting at line 57 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierScaleHandle.java
+
+    }
+
+    @Override
+    protected Rectangle basicGetBounds() {
+        Rectangle r = new Rectangle(getLocation());
+        int h = getHandlesize();
+        r.x -= h / 2;
+        r.y -= h / 2;
+        r.width = r.height = h;
+        return r;
+    }
+
+    public Point getLocation() {
+        if (location == null) {
+            return view.drawingToView(getOrigin());
+        }
+        return location;
+    }
+
+=====================================================================
+Found a 13 line (77 tokens) duplication in the following files: 
+Starting at line 273 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+Starting at line 336 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/TransformHandleKit.java
+
+                    new Point2D.Double(Math.max(r.x, p.x), r.y + r.height));
+        }
+
+        @Override
+        public void keyPressed(KeyEvent evt) {
+            if (!getOwner().isTransformable()) {
+                evt.consume();
+                return;
+            }
+            Object geom = getOwner().getTransformRestoreData();
+            Rectangle2D.Double r = getTransformedBounds();
+            switch (evt.getKeyCode()) {
+                case KeyEvent.VK_UP:
+
+=====================================================================
+Found a 25 line (76 tokens) duplication in the following files: 
+Starting at line 911 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/AbstractDrawingView.java
+Starting at line 1256 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/DefaultDrawingView.java
+
+    public void fireViewTransformChanged() {
+        for (Handle handle : selectionHandles) {
+            handle.viewTransformChanged();
+        }
+        for (Handle handle : secondaryHandles) {
+            handle.viewTransformChanged();
+        }
+    }
+
+    @Override
+    public void setHandleDetailLevel(int newValue) {
+        if (newValue != detailLevel) {
+            detailLevel = newValue;
+            invalidateHandles();
+            validateHandles();
+        }
+    }
+
+    @Override
+    public int getHandleDetailLevel() {
+        return detailLevel;
+    }
+
+    @Override
+    public abstract AffineTransform getDrawingToViewTransform();
+
+=====================================================================
+Found a 20 line (76 tokens) duplication in the following files: 
+Starting at line 232 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierControlPointHandle.java
+Starting at line 190 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/handle/BezierNodeHandle.java
+
+        view.getDrawing().fireUndoableEditHappened(new BezierNodeEdit(figure, index, oldValue, newValue) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void redo() throws CannotRedoException {
+                super.redo();
+                fireHandleRequestSecondaryHandles();
+            }
+
+            @Override
+            public void undo() throws CannotUndoException {
+                super.undo();
+                fireHandleRequestSecondaryHandles();
+            }
+        });
+        view.getDrawing().fireUndoableEditHappened(edit);
+    }
+
+    @Override
+    public boolean isCombinableWith(Handle h) {
+
+=====================================================================
+Found a 19 line (75 tokens) duplication in the following files: 
+Starting at line 189 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/DiamondFigure.java
+Starting at line 273 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+
+        rectangle.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Moves the Figure to a new location.
+     *
+     * @param tx the transformation matrix.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead));
+    }
+
+    @Override
+    public void restoreTransformTo(Object geometry) {
+
+=====================================================================
+Found a 19 line (75 tokens) duplication in the following files: 
+Starting at line 125 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/EllipseFigure.java
+Starting at line 273 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+
+        ellipse.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Transforms the figure.
+     *
+     * @param tx the transformation.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead));
+    }
+
+    @Override
+    public EllipseFigure clone() {
+
+=====================================================================
+Found a 20 line (75 tokens) duplication in the following files: 
+Starting at line 148 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/ImageFigure.java
+Starting at line 273 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+
+        rectangle.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Transforms the figure.
+     *
+     * @param tx The transformation.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead));
+    }
+
+    // ATTRIBUTES
+    @Override
+    public void restoreTransformTo(Object geometry) {
+
+=====================================================================
+Found a 20 line (75 tokens) duplication in the following files: 
+Starting at line 85 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/RectangleFigure.java
+Starting at line 273 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+
+        rectangle.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Moves the Figure to a new location.
+     *
+     * @param tx the transformation matrix.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead)
+        );
+    }
+
+    @Override
+    public void restoreTransformTo(Object geometry) {
+
+=====================================================================
+Found a 20 line (75 tokens) duplication in the following files: 
+Starting at line 170 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/RoundRectangleFigure.java
+Starting at line 273 of /Users/aleen/SWE439/JHotDraw/jhotdraw-core/src/main/java/org/jhotdraw/draw/figure/TextAreaFigure.java
+
+        roundrect.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+    }
+
+    /**
+     * Transforms the figure.
+     *
+     * @param tx The transformation.
+     */
+    @Override
+    public void transform(AffineTransform tx) {
+        Point2D.Double anchor = getStartPoint();
+        Point2D.Double lead = getEndPoint();
+        setBounds(
+                (Point2D.Double) tx.transform(anchor, anchor),
+                (Point2D.Double) tx.transform(lead, lead));
+    }
+
+    // EDITING
+    @Override
+    public Collection<Handle> createHandles(int detailLevel) {
+

@@ -1,0 +1,3077 @@
+Found a 37 line (211 tokens) duplication in the following files: 
+Starting at line 338 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable.java
+Starting at line 516 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable1_7.java
+
+		}
+	} //}}}
+
+	//{{{ paintHeader() method
+	private double paintHeader(Graphics2D gfx, double pageX, double pageY,
+		double pageWidth, boolean actuallyPaint)
+	{
+		String headerText = jEdit.getProperty("print.headerText",
+			new String[] { buffer.getName() });
+		FontRenderContext frc = gfx.getFontRenderContext();
+		lm = font.getLineMetrics(headerText,frc);
+
+		Rectangle2D bounds = font.getStringBounds(headerText,frc);
+		Rectangle2D headerBounds = new Rectangle2D.Double(
+			pageX,pageY,pageWidth,bounds.getHeight());
+
+		if(actuallyPaint)
+		{
+			gfx.setColor(headerColor);
+			gfx.fill(headerBounds);
+			gfx.setColor(headerTextColor);
+			gfx.drawString(headerText,
+				(float)(pageX + (pageWidth - bounds.getWidth()) / 2),
+				(float)(pageY + lm.getAscent()));
+		}
+
+		return headerBounds.getHeight();
+	}
+	//}}}
+
+	//{{{ paintFooter() method
+	private double paintFooter(Graphics2D gfx, double pageX, double pageY,
+		double pageWidth, double pageHeight, int pageIndex,
+		boolean actuallyPaint)
+	{
+		String footerText = jEdit.getProperty("print.footerText",
+			new Object[] { new Date(), Integer.valueOf(pageIndex + 1)});
+
+=====================================================================
+Found a 44 line (208 tokens) duplication in the following files: 
+Starting at line 194 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/PrinterDialog.java
+Starting at line 245 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/PrinterDialog.java
+
+    private ActionListener getPreviewButtonListener()
+    {
+        return new ActionListener()
+        {
+
+            public void actionPerformed(ActionEvent ae)
+            {
+
+                // check margins and so on
+                String checkMarginsMessage = pageSetupPanel.recalculate();
+                if ( checkMarginsMessage != null )
+                {
+                    JOptionPane.showMessageDialog( PrinterDialog.this, checkMarginsMessage, jEdit.getProperty( "print-error.title" ), JOptionPane.ERROR_MESSAGE );
+                    return;
+                }
+
+
+                // gather all the attributes from the tabs
+                for ( int i = 0; i < tabs.getTabCount(); i++ )
+                {
+                    PrinterPanel panel = ( PrinterPanel )tabs.getComponentAt( i );
+                    AttributeSet panelAttributes = panel.getAttributes();
+                    if (panelAttributes != null)
+                    {
+                        PrinterDialog.this.attributes.addAll( panelAttributes );
+                    }
+                }
+
+                // adjust the print range to filter based on odd/even pages
+                PageRanges pr = ( PageRanges )PrinterDialog.this.attributes.get( PageRanges.class );
+                try
+                {
+                    PageRanges mergedRanges = mergeRanges( pr );
+                    if (mergedRanges != null)
+                    {
+                        PrinterDialog.this.attributes.add( mergedRanges );
+                    }
+                }
+                catch ( PrintException e )
+                {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog( PrinterDialog.this, jEdit.getProperty( "print-error.message", new String[] {e.getMessage()} ), jEdit.getProperty( "print-error.title" ), JOptionPane.ERROR_MESSAGE );
+                    return;
+                }
+
+=====================================================================
+Found a 44 line (205 tokens) duplication in the following files: 
+Starting at line 221 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/ParseException.java
+Starting at line 40 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/TokenMgrError.java
+
+  protected String add_escapes(String str) {
+      StringBuilder retval = new StringBuilder();
+      char ch;
+      for (int i = 0; i < str.length(); i++) {
+        switch (str.charAt(i))
+        {
+           case 0 :
+              continue;
+           case '\b':
+              retval.append("\\b");
+              continue;
+           case '\t':
+              retval.append("\\t");
+              continue;
+           case '\n':
+              retval.append("\\n");
+              continue;
+           case '\f':
+              retval.append("\\f");
+              continue;
+           case '\r':
+              retval.append("\\r");
+              continue;
+           case '\"':
+              retval.append("\\\"");
+              continue;
+           case '\'':
+              retval.append("\\\'");
+              continue;
+           case '\\':
+              retval.append("\\\\");
+              continue;
+           default:
+              if ((ch = str.charAt(i)) < 0x20 || ch > 0x7e) {
+                 String s = "0000" + Integer.toString(ch, 16);
+                 retval.append("\\u" + s.substring(s.length() - 4, s.length()));
+              } else {
+                 retval.append(ch);
+              }
+              continue;
+        }
+      }
+      return retval.toString();
+   }
+
+=====================================================================
+Found a 16 line (200 tokens) duplication in the following files: 
+Starting at line 103 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/pluginmgr/InstallPanel.java
+Starting at line 112 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/pluginmgr/ManagePanel.java
+
+		table.addFocusListener(new TableFocusHandler());
+		InputMap tableInputMap = table.getInputMap(JComponent.WHEN_FOCUSED);
+		ActionMap tableActionMap = table.getActionMap();
+		tableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB,0),"tabOutForward");
+		tableActionMap.put("tabOutForward",new KeyboardAction(KeyboardCommand.TAB_OUT_FORWARD));
+		tableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB,InputEvent.SHIFT_DOWN_MASK),"tabOutBack");
+		tableActionMap.put("tabOutBack",new KeyboardAction(KeyboardCommand.TAB_OUT_BACK));
+		tableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,0),"editPlugin");
+		tableActionMap.put("editPlugin",new KeyboardAction(KeyboardCommand.EDIT_PLUGIN));
+		tableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0),"closePluginManager");
+		tableActionMap.put("closePluginManager",new KeyboardAction(KeyboardCommand.CLOSE_PLUGIN_MANAGER));
+
+		TableColumn col1 = table.getColumnModel().getColumn(0);
+		TableColumn col2 = table.getColumnModel().getColumn(1);
+		TableColumn col3 = table.getColumnModel().getColumn(2);
+		TableColumn col4 = table.getColumnModel().getColumn(3);
+
+=====================================================================
+Found a 44 line (200 tokens) duplication in the following files: 
+Starting at line 374 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable.java
+Starting at line 542 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable1_7.java
+
+			new Object[] { new Date(), Integer.valueOf(pageIndex + 1)});
+		FontRenderContext frc = gfx.getFontRenderContext();
+		lm = font.getLineMetrics(footerText,frc);
+
+		Rectangle2D bounds = font.getStringBounds(footerText,frc);
+		Rectangle2D footerBounds = new Rectangle2D.Double(
+			pageX,pageY + pageHeight - bounds.getHeight(),
+			pageWidth,bounds.getHeight());
+
+		if(actuallyPaint)
+		{
+			gfx.setColor(footerColor);
+			gfx.fill(footerBounds);
+			gfx.setColor(footerTextColor);
+			gfx.drawString(footerText,
+				(float)(pageX + (pageWidth - bounds.getWidth()) / 2),
+				(float)(pageY + pageHeight - bounds.getHeight()
+				+ lm.getAscent()));
+		}
+
+		return footerBounds.getHeight();
+	} //}}}
+
+	//}}}
+
+	//{{{ PrintTabExpander class
+	static class PrintTabExpander implements TabExpander
+	{
+		private double tabWidth;
+
+		//{{{ PrintTabExpander constructor
+		PrintTabExpander(double tabWidth)
+		{
+			this.tabWidth = tabWidth;
+		} //}}}
+
+		//{{{ nextTabStop() method
+		public float nextTabStop(float x, int tabOffset)
+		{
+			int ntabs = (int)((x + 1) / tabWidth);
+			return (float)((ntabs + 1) * tabWidth);
+		} //}}}
+	} //}}}
+}
+
+=====================================================================
+Found a 29 line (199 tokens) duplication in the following files: 
+Starting at line 202 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java
+Starting at line 282 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java
+
+			if (!isInteger(newString))
+			{
+				return;
+			}
+			setBackground(inRange(newString) ? defaultBackground : invalidStyle.getBackgroundColor());
+			setForeground(inRange(newString) ? defaultForeground : invalidStyle.getForegroundColor());
+			super.insertString(fb, offset, string, attr);
+		}
+
+		@Override
+		public void remove(FilterBypass fb, int offset, int length)
+			throws BadLocationException
+		{
+			String newString = new StringBuilder(getText()).delete(offset, offset + length).toString();
+			setBackground(inRange(newString) ? defaultBackground : invalidStyle.getBackgroundColor());
+			setForeground(inRange(newString) ? defaultForeground : invalidStyle.getForegroundColor());
+			super.remove(fb, offset, length);
+		}
+
+		@Override
+		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+			throws BadLocationException
+		{
+			if (text == null || text.isEmpty())
+			{
+				return;
+			}
+			String newString = new StringBuilder(getText()).replace(offset, offset + length, text).toString();
+			if (!isInteger(newString))
+
+=====================================================================
+Found a 22 line (185 tokens) duplication in the following files: 
+Starting at line 126 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/AddModeDialog.java
+Starting at line 227 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/options/EditModesPane.java
+
+	public void ok()
+	{
+		// check values
+		String modeName = getModeName();
+		if (modeName == null || modeName.isEmpty())
+		{
+			JOptionPane.showMessageDialog(jEdit.getActiveView(), jEdit.getProperty("options.editing.addMode.dialog.Mode_name_may_not_be_empty.", "Mode name may not be empty."), jEdit.getProperty("options.editing.addMode.dialog.errorTitle", "Error"), JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		String modeFile = getModeFile();
+		if (modeFile == null || modeFile.isEmpty())
+		{
+			JOptionPane.showMessageDialog(jEdit.getActiveView(), jEdit.getProperty("options.editing.addMode.dialog.Mode_file_may_not_be_empty.", "Mode file may not be empty."), jEdit.getProperty("options.editing.addMode.dialog.errorTitle", "Error"), JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		String filenameGlob = getFilenameGlob();
+		String firstLineGlob = getFirstLineGlob();
+		if ((filenameGlob == null || filenameGlob.isEmpty()) && (firstLineGlob == null || firstLineGlob.isEmpty()))
+		{
+			JOptionPane.showMessageDialog(jEdit.getActiveView(),jEdit.getProperty("options.editing.addMode.dialog.Either_file_name_glob_or_first_line_glob_or_both_must_be_filled_in.", "Either file name glob or first line glob or both must be filled in."), jEdit.getProperty("options.editing.addMode.dialog.errorTitle", "Error"), JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+=====================================================================
+Found a 37 line (164 tokens) duplication in the following files: 
+Starting at line 53 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/menu/EnhancedCheckBoxMenuItem.java
+Starting at line 51 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java
+
+		shortcut = GUIUtilities.getShortcutLabel(action, true);
+		String toolTip = jEdit.getProperty(action+ ".tooltip");
+		if (toolTip != null) {
+			setToolTipText(toolTip);
+		}
+		
+		if (OperatingSystem.hasScreenMenuBar() && shortcut != null)
+		{
+			if (jEdit.getBooleanProperty("menu.multiShortcut", false))
+			{
+				setText(label + " ( " + shortcut + " )");
+			}
+			else
+			{
+				setText(label);
+				
+				Keymap keymap = jEdit.getKeymapManager().getKeymap();
+				String rawShortcut = keymap.getShortcut(action + ".shortcut");
+				
+				KeyStroke key = KeyEventTranslator.parseKeyStroke(rawShortcut);
+				if (key != null)
+					setAccelerator(key);
+			}
+			shortcut = null;
+		}
+		else
+			setText(label);
+
+		if(action != null)
+		{
+			setEnabled(true);
+			addActionListener(new EditAction.Wrapper(context,action));
+
+			addMouseListener(new HoverSetStatusMouseHandler(action));
+		}
+		else
+			setEnabled(false);
+
+=====================================================================
+Found a 52 line (156 tokens) duplication in the following files: 
+Starting at line 144 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/DefaultInputHandler.java
+Starting at line 267 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/input/TextAreaInputHandler.java
+
+				}
+			}
+		}
+
+		Object o = currentBindings.get(keyStroke);
+		if(o == null)
+		{
+			if (!dryRun)
+			{
+				// Don't beep if the user presses some
+				// key we don't know about unless a
+				// prefix is active. Otherwise it will
+				// beep when caps lock is pressed, etc.
+				if(currentBindings != bindings)
+				{
+					javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
+					// F10 should be passed on, but C+e F10
+					// shouldn't
+					repeatCount = 1;
+					setCurrentBindings(bindings);
+				}
+				else if(input != '\0')
+				{
+					if (!keyStroke.isFromGlobalContext())
+					{ // let user input be only local
+						userInput(input);
+					}
+				}
+				sendShortcutPrefixOff();
+			}
+		}
+		else if(o instanceof Hashtable)
+		{
+			if (!dryRun)
+			{
+				setCurrentBindings((Hashtable)o);
+				ShortcutPrefixActiveEvent.firePrefixStateChange(currentBindings, true);
+				shortcutOn = true;
+			}
+			return true;
+		}
+		else if(o instanceof String)
+		{
+			if (!dryRun)
+			{
+				setCurrentBindings(bindings);
+				sendShortcutPrefixOff();
+				invokeAction((String)o);
+			}
+			return true;
+		}
+		else if(o instanceof EditAction)
+
+=====================================================================
+Found a 40 line (155 tokens) duplication in the following files: 
+Starting at line 315 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/Selection.java
+Starting at line 715 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/Selection.java
+
+		} //}}}
+
+		//{{{ contentRemoved() method
+		@Override
+		boolean contentRemoved(JEditBuffer buffer, int startLine, int start,
+			int numLines, int length)
+		{
+			int end = start + length;
+			boolean changed = false;
+
+			if(this.start > start && this.start <= end)
+			{
+				this.start = start;
+				changed = true;
+			}
+			else if(this.start > end)
+			{
+				this.start -= length;
+				changed = true;
+			}
+
+			if(this.end > start && this.end <= end)
+			{
+				this.end = start;
+				changed = true;
+			}
+			else if(this.end > end)
+			{
+				this.end -= length;
+				changed = true;
+			}
+
+			if(changed && numLines != 0)
+			{
+				this.startLine = buffer.getLineOfOffset(this.start);
+				this.endLine = buffer.getLineOfOffset(this.end);
+			}
+
+			return changed;
+		} //}}}
+
+=====================================================================
+Found a 20 line (153 tokens) duplication in the following files: 
+Starting at line 129 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/ContextAddDialog.java
+Starting at line 491 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/options/ToolBarOptionPane.java
+
+		actionPanel.add(BorderLayout.CENTER,new JScrollPane(list));
+
+		content.add(BorderLayout.CENTER,actionPanel);
+
+		JPanel southPanel = new JPanel();
+		southPanel.setLayout(new BoxLayout(southPanel,BoxLayout.X_AXIS));
+		southPanel.setBorder(new EmptyBorder(17, 0, 0, 0));
+		JButton ok = new JButton(jEdit.getProperty("common.ok"));
+		ok.addActionListener(e -> ok());
+		getRootPane().setDefaultButton(ok);
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
+		cancel.addActionListener(e -> cancel());
+		GenericGUIUtilities.makeSameSize(ok, cancel);
+		
+		southPanel.add(Box.createGlue());
+		southPanel.add(ok);
+		southPanel.add(Box.createHorizontalStrut(6));
+		southPanel.add(cancel);
+
+		content.add(BorderLayout.SOUTH,southPanel);
+
+=====================================================================
+Found a 33 line (135 tokens) duplication in the following files: 
+Starting at line 177 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/TextUtilities.java
+Starting at line 225 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/TextUtilities.java
+
+				for(int i = offset; i < lineText.count; i++)
+				{
+					char ch = lineText.array[lineText.offset + i];
+					if(ch == c)
+					{
+						if(!haveTokens)
+						{
+							tokenHandler.init();
+							buffer.markTokens(line,tokenHandler);
+							haveTokens = true;
+						}
+						if(getTokenAtOffset(tokenHandler.getTokens(),i).id == idOfBracket)
+							count++;
+					}
+					else if(ch == cprime)
+					{
+						if(!haveTokens)
+						{
+							tokenHandler.init();
+							buffer.markTokens(line,tokenHandler);
+							haveTokens = true;
+						}
+						if(getTokenAtOffset(tokenHandler.getTokens(),i).id == idOfBracket)
+						{
+							count--;
+							if(count == 0)
+								return buffer.getLineStartOffset(line) + i;
+						}
+					}
+				}
+
+				//{{{ Go on to next line
+				line++;
+
+=====================================================================
+Found a 33 line (135 tokens) duplication in the following files: 
+Starting at line 995 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/TextUtilities.java
+Starting at line 1031 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/TextUtilities.java
+
+		int tabSize, StringBuilder buf)
+	{
+		// align everything to paragraph's leading indent
+		int leadingWhitespaceCount = StandardUtilities.getLeadingWhiteSpace(text);
+		String leadingWhitespace = text.substring(0,leadingWhitespaceCount);
+		int leadingWhitespaceWidth = StandardUtilities.getLeadingWhiteSpaceWidth(text,tabSize);
+
+		buf.append(leadingWhitespace);
+
+		int lineLength = leadingWhitespaceWidth;
+		StringTokenizer st = new StringTokenizer(text);
+		while(st.hasMoreTokens())
+		{
+			String word = st.nextToken();
+			if(lineLength == leadingWhitespaceWidth)
+			{
+				// do nothing
+			}
+			else if(lineLength + word.length() + 1 > maxLineLength)
+			{
+				buf.append('\n');
+				buf.append(leadingWhitespace);
+				lineLength = leadingWhitespaceWidth;
+			}
+			else
+			{
+				buf.append(' ');
+				lineLength++;
+			}
+			buf.append(word);
+			lineLength += word.length();
+		}
+	} //}}}
+
+=====================================================================
+Found a 22 line (127 tokens) duplication in the following files: 
+Starting at line 365 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java
+Starting at line 210 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionGroupPane.java
+
+	private boolean selectPane(OptionGroup node, String name, List<Object> path)
+	{
+		path.add(node);
+
+		Enumeration<Object> e = node.getMembers();
+		while(e.hasMoreElements())
+		{
+			Object obj = e.nextElement();
+			if(obj instanceof OptionGroup)
+			{
+				OptionGroup grp = (OptionGroup)obj;
+				if(grp.getName().equals(name))
+				{
+					path.add(grp);
+					path.add(grp.getMember(0));
+					TreePath treePath = new TreePath(
+						path.toArray());
+					paneTree.scrollPathToVisible(treePath);
+					paneTree.setSelectionPath(treePath);
+					return true;
+				}
+				else if(selectPane((OptionGroup)obj,name,path))
+
+=====================================================================
+Found a 33 line (124 tokens) duplication in the following files: 
+Starting at line 735 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3162 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+                   jjtn000.name = t.image;
+          break;
+        default:
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+/*
+	Type, name and expression syntax follows.
+*/
+  final public void Type() throws ParseException {
+
+=====================================================================
+Found a 30 line (122 tokens) duplication in the following files: 
+Starting at line 1981 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2535 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+          UnaryExpressionNotPlusMinus();
+          break;
+        default:
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void PrimaryExpression() throws ParseException {
+
+=====================================================================
+Found a 28 line (122 tokens) duplication in the following files: 
+Starting at line 4377 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+Starting at line 4416 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+
+	public void toUpperCase()
+	{
+		if(!buffer.isEditable())
+		{
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
+			return;
+		}
+
+		Selection[] selection = getSelection();
+		int caret = -1;
+		if (selection.length == 0)
+		{
+			caret = getCaretPosition();
+			selectWord();
+			selection = getSelection();
+		}
+		if (selection.length == 0)
+		{
+			if (caret != -1)
+				setCaretPosition(caret);
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
+			return;
+		}
+
+		buffer.beginCompoundEdit();
+
+		for (Selection s : selection)
+			setSelectedText(s, getSelectedText(s).toUpperCase());
+
+=====================================================================
+Found a 25 line (121 tokens) duplication in the following files: 
+Starting at line 388 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java
+Starting at line 235 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionGroupPane.java
+
+			}
+			else if(obj instanceof OptionPane)
+			{
+				OptionPane pane = (OptionPane)obj;
+				if(pane.getName().equals(name)
+					|| name == null)
+				{
+					path.add(pane);
+					TreePath treePath = new TreePath(
+						path.toArray());
+					paneTree.scrollPathToVisible(treePath);
+					paneTree.setSelectionPath(treePath);
+					return true;
+				}
+			}
+			else if(obj instanceof String)
+			{
+				String pane = (String)obj;
+				if(pane.equals(name)
+					|| name == null)
+				{
+					path.add(pane);
+					TreePath treePath = new TreePath(
+						path.toArray());
+					paneTree.scrollPathToVisible(treePath);
+
+=====================================================================
+Found a 29 line (120 tokens) duplication in the following files: 
+Starting at line 357 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 852 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        jj_consume_token(SEMICOLON);
+        break;
+      default:
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void PackageDeclaration() throws ParseException {
+
+=====================================================================
+Found a 29 line (120 tokens) duplication in the following files: 
+Starting at line 458 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 736 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1982 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2171 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2460 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2536 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3163 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+          break;
+        default:
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void VariableDeclarator() throws ParseException {
+
+=====================================================================
+Found a 27 line (120 tokens) duplication in the following files: 
+Starting at line 152 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java
+Starting at line 118 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionGroupPane.java
+
+		StringBuilder buf = new StringBuilder();
+
+		OptionPane optionPane = null;
+
+		int lastIdx = nodes.length - 1;
+
+		for (int i = paneTree.isRootVisible() ? 0 : 1;
+			i <= lastIdx; i++)
+		{
+			String label;
+			Object node = nodes[i];
+			if (node instanceof OptionPane)
+			{
+				optionPane = (OptionPane)node;
+				label = jEdit.getProperty("options."
+					+ optionPane.getName()
+					+ ".label");
+			}
+			else if (node instanceof OptionGroup)
+			{
+				label = ((OptionGroup)node).getLabel();
+			}
+			else if (node instanceof String)
+			{
+				label = jEdit.getProperty("options."
+					+ node + ".label");
+				optionPane = deferredOptionPanes.get(node);
+
+=====================================================================
+Found a 78 line (120 tokens) duplication in the following files: 
+Starting at line 201 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/Gutter.java
+Starting at line 692 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainter.java
+
+	} //}}}
+
+	//{{{ addExtension() method
+	/**
+	 * Adds a text area extension, which can perform custom painting and
+	 * tool tip handling.
+	 * @param extension The extension
+	 * @since jEdit 4.0pre4
+	 */
+	public void addExtension(TextAreaExtension extension)
+	{
+		extensionMgr.addExtension(DEFAULT_LAYER,extension);
+		repaint();
+	} //}}}
+
+	//{{{ addExtension() method
+	/**
+	 * Adds a text area extension, which can perform custom painting and
+	 * tool tip handling.
+	 * @param layer The layer to add the extension to. Note that more than
+	 * extension can share the same layer.
+	 * @param extension The extension
+	 * @since jEdit 4.0pre4
+	 */
+	public void addExtension(int layer, TextAreaExtension extension)
+	{
+		extensionMgr.addExtension(layer,extension);
+		repaint();
+	} //}}}
+
+	//{{{ removeExtension() method
+	/**
+	 * Removes a text area extension. It will no longer be asked to
+	 * perform custom painting and tool tip handling.
+	 * @param extension The extension
+	 * @since jEdit 4.0pre4
+	 */
+	public void removeExtension(TextAreaExtension extension)
+	{
+		extensionMgr.removeExtension(extension);
+		repaint();
+	} //}}}
+
+	//{{{ getExtensions() method
+	/**
+	 * Returns an array of registered text area extensions. Useful for
+	 * debugging purposes.
+	 * @since jEdit 4.1pre5
+	 */
+	public TextAreaExtension[] getExtensions()
+	{
+		return extensionMgr.getExtensions();
+	} //}}}
+
+	//{{{ getToolTipText() method
+	/**
+	 * Returns the tool tip to display at the specified location.
+	 * @param evt The mouse event
+	 */
+	@Override
+	public String getToolTipText(MouseEvent evt)
+	{
+		if(textArea.getBuffer().isLoading())
+			return null;
+
+		return extensionMgr.getToolTipText(evt.getX(),evt.getY());
+	} //}}}
+
+	//{{{ setBorder() method
+	/**
+	 * Convenience method for setting a default matte border on the right
+	 * with the specified border width and color
+	 * @param width The border width (in pixels)
+	 * @param color1 The focused border color
+	 * @param color2 The unfocused border color
+	 * @param color3 The gutter/text area gap color
+	 */
+	public void setBorder(int width, Color color1, Color color2, Color color3)
+
+=====================================================================
+Found a 28 line (119 tokens) duplication in the following files: 
+Starting at line 358 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2834 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        break;
+      default:
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void PackageDeclaration() throws ParseException {
+
+=====================================================================
+Found a 28 line (119 tokens) duplication in the following files: 
+Starting at line 853 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2834 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        break;
+      default:
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void PrimitiveType() throws ParseException {
+
+=====================================================================
+Found a 28 line (118 tokens) duplication in the following files: 
+Starting at line 358 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2297 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2834 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        break;
+      default:
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void PackageDeclaration() throws ParseException {
+
+=====================================================================
+Found a 28 line (118 tokens) duplication in the following files: 
+Starting at line 853 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2297 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        break;
+      default:
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void PrimitiveType() throws ParseException {
+
+=====================================================================
+Found a 45 line (116 tokens) duplication in the following files: 
+Starting at line 98 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/DefaultInputHandler.java
+Starting at line 222 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/input/TextAreaInputHandler.java
+
+	} //}}}
+
+	//{{{ handleKey() method
+	/**
+	 * Handles the given keystroke.
+	 * @param keyStroke The key stroke
+	 * @param dryRun only calculate the return value, do not have any other effect
+	 * @since jEdit 4.2pre5
+	 */
+	@Override
+	public boolean handleKey(KeyEventTranslator.Key keyStroke, boolean dryRun)
+	{
+		char input = '\0';
+		if(keyStroke.modifiers == null
+			|| keyStroke.modifiers.equals("S"))
+		{
+			switch(keyStroke.key)
+			{
+			case '\n':
+			case '\t':
+				input = (char)keyStroke.key;
+				break;
+			default:
+				input = keyStroke.input;
+				break;
+			}
+		}
+
+		if(readNextChar != null)
+		{
+			if(input != '\0')
+			{
+				if (!dryRun)
+				{
+					setCurrentBindings(bindings);
+					invokeReadNextChar(input);
+					repeatCount = 1;
+				}
+				return true;
+			}
+			else
+			{
+				if (!dryRun)
+				{
+					readNextChar = null;
+
+=====================================================================
+Found a 25 line (116 tokens) duplication in the following files: 
+Starting at line 160 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/syntax/ParserRule.java
+Starting at line 192 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/syntax/ParserRule.java
+
+		String hashChar, int startPosMatch, String start,
+		int endPosMatch, String end, ParserRuleSet delegate, byte id,
+		byte matchType, boolean noLineBreak, boolean noWordBreak,
+		boolean ignoreCase, String escape, boolean endRegexp)
+		throws PatternSyntaxException
+	{
+		int ruleAction = SPAN | REGEXP |
+			((noLineBreak) ? NO_LINE_BREAK : 0) |
+			((noWordBreak) ? NO_WORD_BREAK : 0);
+			
+		Pattern endRegexpPattern;
+		char[] endArray;
+		if (endRegexp)
+		{
+			ruleAction |= END_REGEXP;
+			endRegexpPattern = Pattern.compile(end, (ignoreCase ? Pattern.CASE_INSENSITIVE : 0));
+			endArray = null;
+		}
+		else
+		{
+			endRegexpPattern = null;
+			endArray = end.toCharArray();
+		}
+
+		return new ParserRule(ruleAction, hashChar, startPosMatch, null,
+
+=====================================================================
+Found a 28 line (113 tokens) duplication in the following files: 
+Starting at line 687 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2384 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        break;
+      default:
+        ;
+      }
+      jj_consume_token(RPAREN);
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void FormalParameter() throws ParseException {
+
+=====================================================================
+Found a 26 line (113 tokens) duplication in the following files: 
+Starting at line 1395 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/pluginmgr/InstallPanel.java
+Starting at line 1385 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/pluginmgr/ManagePanel.java
+
+			if (-1 == table.getSelectedColumn())
+			{
+				table.setColumnSelectionInterval(0,0);
+			}
+		}
+	} //}}}
+
+	//{{{ HeaderRenderer
+	private static class HeaderRenderer extends DefaultTableCellRenderer
+	{
+		private final DefaultTableCellRenderer tcr;
+
+		HeaderRenderer(DefaultTableCellRenderer tcr)
+		{
+			this.tcr = tcr;
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value,
+							       boolean isSelected, boolean hasFocus,
+							       int row, int column)
+		{
+			JLabel l = (JLabel)tcr.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
+			PluginTableModel model = (PluginTableModel) table.getModel();
+			Icon icon = (column == model.sortType)
+				? (model.sortDirection == 1) ? ASC_ICON : DESC_ICON
+
+=====================================================================
+Found a 29 line (112 tokens) duplication in the following files: 
+Starting at line 2913 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3099 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      jj_consume_token(RPAREN);
+      Statement();
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+/*
+	Do statement is just a While statement with a special hook to execute
+	at least once.
+*/
+  final public void DoStatement() throws ParseException {
+
+=====================================================================
+Found a 23 line (110 tokens) duplication in the following files: 
+Starting at line 68 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/browser/DeleteBrowserTask.java
+Starting at line 74 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/browser/ListDirectoryBrowserTask.java
+
+				VFSManager.error(browser, path, "ioerror.delete-error", null);
+		}
+		catch (IOException io)
+		{
+			setCancellable(false);
+			Log.log(Log.ERROR, this, io);
+			String[] pp = {io.toString()};
+			VFSManager.error(browser, path, "ioerror.directory-error", pp);
+		}
+		finally
+		{
+			try
+			{
+				vfs._endVFSSession(session, browser);
+			}
+			catch (IOException io)
+			{
+				setCancellable(false);
+				Log.log(Log.ERROR, this, io);
+				String[] pp = {io.toString()};
+				VFSManager.error(browser, path, "ioerror.directory-error", pp);
+			}
+		}
+
+=====================================================================
+Found a 25 line (110 tokens) duplication in the following files: 
+Starting at line 632 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2675 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2790 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      }
+      jj_consume_token(RBRACE);
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void FormalParameters() throws ParseException {
+
+=====================================================================
+Found a 22 line (108 tokens) duplication in the following files: 
+Starting at line 743 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/browser/BrowserView.java
+Starting at line 438 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/browser/VFSDirectoryEntryTable.java
+
+				switch(evt.getKeyChar())
+				{
+				case '~':
+					evt.consume();
+					if(browser.getMode() == VFSBrowser.BROWSER)
+						browser.setDirectory(System.getProperty(
+							"user.home"));
+					break;
+				case '/':
+					evt.consume();
+					if(browser.getMode() == VFSBrowser.BROWSER)
+						browser.rootDirectory();
+					break;
+				case '-':
+					evt.consume();
+					if(browser.getMode() == VFSBrowser.BROWSER)
+					{
+						browser.setDirectory(
+							browser.getView().getBuffer()
+							.getDirectory());
+					}
+					break;
+
+=====================================================================
+Found a 25 line (108 tokens) duplication in the following files: 
+Starting at line 361 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 801 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 856 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2029 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2837 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3303 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void PackageDeclaration() throws ParseException {
+
+=====================================================================
+Found a 27 line (108 tokens) duplication in the following files: 
+Starting at line 106 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/menu/RecentDirectoriesProvider.java
+Starting at line 148 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/menu/RecentFilesProvider.java
+
+					&& i != model.getSize() - 1)
+				{
+					JMenu newMenu = new JMenu(
+						jEdit.getProperty("common.more"));
+					menu.add(newMenu);
+					menu = newMenu;
+				}
+
+				menu.add(menuItem);
+			}
+		}
+
+		if(sort)
+		{
+			menuItems.sort(new MenuItemTextComparator());
+			for(int i = 0; i < menuItems.size(); i++)
+			{
+				if(menu.getMenuComponentCount() >= maxItems
+					&& i != 0)
+				{
+					JMenu newMenu = new JMenu(
+						jEdit.getProperty("common.more"));
+					menu.add(newMenu);
+					menu = newMenu;
+				}
+
+				menu.add(menuItems.elementAt(i));
+
+=====================================================================
+Found a 24 line (107 tokens) duplication in the following files: 
+Starting at line 284 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 505 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+                jjtn000.name = name.image;
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void MethodDeclaration() throws ParseException {
+
+=====================================================================
+Found a 24 line (107 tokens) duplication in the following files: 
+Starting at line 393 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2061 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2914 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3100 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      AmbiguousName();
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void ImportDeclaration() throws ParseException {
+
+=====================================================================
+Found a 28 line (107 tokens) duplication in the following files: 
+Starting at line 801 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2300 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+                                 jjtn000.addArrayDimension();
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+/*
+	Originally called ResultType in the grammar
+*/
+  final public void ReturnType() throws ParseException {
+
+=====================================================================
+Found a 25 line (107 tokens) duplication in the following files: 
+Starting at line 2300 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3303 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public boolean BooleanLiteral() throws ParseException {
+
+=====================================================================
+Found a 24 line (107 tokens) duplication in the following files: 
+Starting at line 2958 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3468 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+          jjtn000.isDoStatement=true;
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void ForStatement() throws ParseException {
+
+=====================================================================
+Found a 25 line (106 tokens) duplication in the following files: 
+Starting at line 361 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3560 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void PackageDeclaration() throws ParseException {
+
+=====================================================================
+Found a 24 line (106 tokens) duplication in the following files: 
+Starting at line 362 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 463 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 741 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 802 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 857 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1987 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2030 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2176 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2465 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2541 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2838 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2880 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3168 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3304 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      }
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void PackageDeclaration() throws ParseException {
+
+=====================================================================
+Found a 24 line (106 tokens) duplication in the following files: 
+Starting at line 393 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1062 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2061 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2914 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3100 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      AmbiguousName();
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void ImportDeclaration() throws ParseException {
+
+=====================================================================
+Found a 24 line (106 tokens) duplication in the following files: 
+Starting at line 393 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 633 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 691 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2061 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2388 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2676 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2791 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2914 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3100 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3500 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      AmbiguousName();
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void ImportDeclaration() throws ParseException {
+
+=====================================================================
+Found a 25 line (106 tokens) duplication in the following files: 
+Starting at line 2300 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3560 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public boolean BooleanLiteral() throws ParseException {
+
+=====================================================================
+Found a 13 line (106 tokens) duplication in the following files: 
+Starting at line 67 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable.java
+Starting at line 108 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable1_7.java
+
+		styles = org.gjt.sp.util.SyntaxUtilities.loadStyles(jEdit.getProperty("print.font"),
+			jEdit.getIntegerProperty("print.fontsize",10),color);
+		styles[Token.NULL] = new SyntaxStyle(textColor,null,font);
+
+		// Change any white text to black
+		for(int i = 0; i < styles.length; i++)
+		{
+			SyntaxStyle s = styles[i];
+			if(s.getForegroundColor().equals(Color.WHITE)
+				&& s.getBackgroundColor() == null)
+			{
+				styles[i] = new SyntaxStyle(
+					Color.BLACK,
+
+=====================================================================
+Found a 23 line (105 tokens) duplication in the following files: 
+Starting at line 285 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 363 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 394 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 464 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 506 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 634 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 692 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 742 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 803 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 858 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1988 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2031 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2062 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2177 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2389 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2466 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2542 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2677 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2792 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2839 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2881 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2915 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2959 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3101 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3169 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3263 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3305 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3431 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3469 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3501 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void MethodDeclaration() throws ParseException {
+
+=====================================================================
+Found a 24 line (105 tokens) duplication in the following files: 
+Starting at line 463 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2301 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void VariableDeclarator() throws ParseException {
+
+=====================================================================
+Found a 24 line (105 tokens) duplication in the following files: 
+Starting at line 633 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1062 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      jj_consume_token(RBRACE);
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void FormalParameters() throws ParseException {
+
+=====================================================================
+Found a 24 line (105 tokens) duplication in the following files: 
+Starting at line 1062 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2388 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2676 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2791 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3500 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      Expression();
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public int AssignmentOperator() throws ParseException {
+
+=====================================================================
+Found a 24 line (105 tokens) duplication in the following files: 
+Starting at line 2301 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2465 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2541 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2880 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3168 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public boolean BooleanLiteral() throws ParseException {
+
+=====================================================================
+Found a 23 line (104 tokens) duplication in the following files: 
+Starting at line 285 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1063 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1988 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2031 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2177 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2302 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2389 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2466 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2542 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2677 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2792 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2839 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2881 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2915 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2959 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3101 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3169 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3263 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3305 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3431 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3469 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3501 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void MethodDeclaration() throws ParseException {
+
+=====================================================================
+Found a 24 line (104 tokens) duplication in the following files: 
+Starting at line 463 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3560 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
+  }
+
+  final public void VariableDeclarator() throws ParseException {
+
+=====================================================================
+Found a 17 line (104 tokens) duplication in the following files: 
+Starting at line 107 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java
+Starting at line 122 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/menu/MarkersProvider.java
+
+		super.paint(g);
+
+		if(shortcut != null)
+		{
+			Graphics2D g2 = (Graphics2D)g;
+			g.setFont(acceleratorFont);
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setColor(getModel().isArmed() ?
+				acceleratorSelectionForeground :
+				acceleratorForeground);
+			FontMetrics fm = g.getFontMetrics();
+			Insets insets = getInsets();
+			g.drawString(shortcut,getWidth() - (fm.stringWidth(
+				shortcut) + insets.right + insets.left + 5),
+				fm.getAscent() + insets.top);
+		}
+	} //}}}
+
+=====================================================================
+Found a 23 line (103 tokens) duplication in the following files: 
+Starting at line 285 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3561 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
+    } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+    }
+  }
+
+  final public void MethodDeclaration() throws ParseException {
+
+=====================================================================
+Found a 32 line (101 tokens) duplication in the following files: 
+Starting at line 3028 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3061 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+                          jjtn000.hasForInit=true;
+        break;
+      default:
+        ;
+      }
+      jj_consume_token(SEMICOLON);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case BOOLEAN:
+      case BYTE:
+      case CHAR:
+      case DOUBLE:
+      case FALSE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NEW:
+      case NULL:
+      case SHORT:
+      case TRUE:
+      case VOID:
+      case INTEGER_LITERAL:
+      case FLOATING_POINT_LITERAL:
+      case CHARACTER_LITERAL:
+      case STRING_LITERAL:
+      case IDENTIFIER:
+      case LPAREN:
+      case BANG:
+      case TILDE:
+      case INCR:
+      case DECR:
+      case PLUS:
+      case MINUS:
+
+=====================================================================
+Found a 26 line (100 tokens) duplication in the following files: 
+Starting at line 694 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/ExtendedGridLayout.java
+Starting at line 787 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/ExtendedGridLayout.java
+
+			}
+		}
+
+		// correct cases where
+		// minimumColWidths[col] <= preferredColWidths[col] <= maximumColWidths[col]
+		// is not true by clipping to the minimumColWidths and maximumColWidths
+		for (int col=0 ; col<gridSize.width ; col++)
+		{
+			if (minimumColWidths[col] >= maximumColWidths[col])
+			{
+				maximumColWidths[col] = minimumColWidths[col];
+				preferredColWidths[col] = minimumColWidths[col];
+			}
+			else if (preferredColWidths[col] < minimumColWidths[col])
+			{
+				preferredColWidths[col] = minimumColWidths[col];
+			}
+			else if (preferredColWidths[col] > maximumColWidths[col])
+			{
+				preferredColWidths[col] = maximumColWidths[col];
+			}
+		}
+
+		// plug in the colspans and correct the minimum, preferred and
+		// maximum column widths the colspans are part of
+		for (ExtendedGridLayoutConstraints cell : colspans)
+
+=====================================================================
+Found a 34 line (99 tokens) duplication in the following files: 
+Starting at line 178 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java
+Starting at line 141 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionGroupPane.java
+
+				optionPane = deferredOptionPanes.get(node);
+				if(optionPane == null)
+				{
+					String propName = "options." + node + ".code";
+					String code = jEdit.getProperty(propName);
+					if(code != null)
+					{
+						optionPane = (OptionPane)
+							BeanShell.eval(
+							jEdit.getActiveView(),
+							BeanShell.getNameSpace(),
+							code
+						);
+
+						if(optionPane != null)
+						{
+							deferredOptionPanes.put(
+								node,optionPane);
+						}
+						else
+							continue;
+					}
+					else
+					{
+						Log.log(Log.ERROR,this,propName
+							+ " not defined");
+						continue;
+					}
+				}
+			}
+			else
+			{
+				continue;
+			}
+
+=====================================================================
+Found a 22 line (98 tokens) duplication in the following files: 
+Starting at line 807 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/ExtendedGridLayout.java
+Starting at line 900 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/ExtendedGridLayout.java
+
+			}
+		}
+
+		// correct cases where
+		// minimumRowHeights[row] <= preferredRowHeights[row] <= maximumRowHeights[row]
+		// is not true by clipping to the minimumRowHeights and maximumRowHeights
+		for (int row=0 ; row<gridSize.height ; row++)
+		{
+			if (minimumRowHeights[row] >= maximumRowHeights[row])
+			{
+				maximumRowHeights[row] = minimumRowHeights[row];
+				preferredRowHeights[row] = minimumRowHeights[row];
+			}
+			else if (preferredRowHeights[row] < minimumRowHeights[row])
+			{
+				preferredRowHeights[row] = minimumRowHeights[row];
+			}
+			else if (preferredRowHeights[row] > maximumRowHeights[row])
+			{
+				preferredRowHeights[row] = maximumRowHeights[row];
+			}
+		}
+
+=====================================================================
+Found a 19 line (97 tokens) duplication in the following files: 
+Starting at line 116 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionTreeModel.java
+Starting at line 138 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionTreeModel.java
+Starting at line 160 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionTreeModel.java
+Starting at line 182 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionTreeModel.java
+
+	protected void fireNodesChanged(Object source, Object[] path,
+		int[] childIndices, Object[] children)
+	{
+		Object[] listeners = listenerList.getListenerList();
+
+		TreeModelEvent modelEvent = null;
+		for (int i = listeners.length - 2; i >= 0; i -= 2)
+		{
+			if (listeners[i] != TreeModelListener.class)
+				continue;
+
+			if (modelEvent == null)
+			{
+				modelEvent = new TreeModelEvent(source,
+					path, childIndices, children);
+			}
+
+			((TreeModelListener)listeners[i + 1])
+				.treeNodesChanged(modelEvent);
+
+=====================================================================
+Found a 28 line (96 tokens) duplication in the following files: 
+Starting at line 1015 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3194 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      Assignment();
+    } else {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case BOOLEAN:
+      case BYTE:
+      case CHAR:
+      case DOUBLE:
+      case FALSE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NEW:
+      case NULL:
+      case SHORT:
+      case TRUE:
+      case VOID:
+      case INTEGER_LITERAL:
+      case FLOATING_POINT_LITERAL:
+      case CHARACTER_LITERAL:
+      case STRING_LITERAL:
+      case IDENTIFIER:
+      case LPAREN:
+      case BANG:
+      case TILDE:
+      case INCR:
+      case DECR:
+      case PLUS:
+      case MINUS:
+
+=====================================================================
+Found a 22 line (96 tokens) duplication in the following files: 
+Starting at line 50 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrinter1_4.java
+Starting at line 364 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrinter1_7.java
+
+		format = new HashPrintRequestAttributeSet();
+
+		String settings = jEdit.getSettingsDirectory();
+		if(settings != null)
+		{
+			String printSpecPath = MiscUtilities.constructPath(
+				settings, "printspec");
+			File filePrintSpec = new File(printSpecPath);
+
+			if (filePrintSpec.exists())
+			{
+				FileInputStream fileIn;
+				ObjectInputStream obIn = null;
+				try
+				{
+					fileIn = new FileInputStream(filePrintSpec);
+					obIn = new ObjectInputStream(fileIn);
+					format = (HashPrintRequestAttributeSet)obIn.readObject();
+				}
+				catch(Exception e)
+				{
+					Log.log(Log.ERROR,BufferPrinter1_4.class,e);
+
+=====================================================================
+Found a 30 line (95 tokens) duplication in the following files: 
+Starting at line 287 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Primitive.java
+Starting at line 364 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Primitive.java
+Starting at line 442 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Primitive.java
+Starting at line 504 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Primitive.java
+
+        long rhs = L2.longValue();
+
+        switch(kind)
+        {
+            // boolean
+            case LT:
+            case LTX:
+                return Boolean.valueOf(lhs < rhs);
+
+            case GT:
+            case GTX:
+                return Boolean.valueOf(lhs > rhs);
+
+            case EQ:
+                return Boolean.valueOf(lhs == rhs);
+
+            case LE:
+            case LEX:
+                return Boolean.valueOf(lhs <= rhs);
+
+            case GE:
+            case GEX:
+                return Boolean.valueOf(lhs >= rhs);
+
+            case NE:
+                return Boolean.valueOf(lhs != rhs);
+
+            // arithmetic
+            case PLUS:
+                return Long.valueOf(lhs + rhs);
+
+=====================================================================
+Found a 22 line (95 tokens) duplication in the following files: 
+Starting at line 256 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable1_7.java
+Starting at line 420 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable1_7.java
+
+			double footerHeight = paintFooter(gfx, pageX, pageY, pageWidth, pageHeight, 0, false);
+			pageHeight -= footerHeight;
+			//Log.log(Log.DEBUG, this, "calculatePages, w/footer imageable: x=" + pageX + ", y=" + pageY + ", w=" + pageWidth + ", h=" + pageHeight);
+		}
+
+		double lineNumberWidth = 0.0;
+
+		// determine line number width
+		if(lineNumbers)
+		{
+			String lineNumberDigits = String.valueOf(buffer.getLineCount());
+			StringBuilder digits = new StringBuilder();
+			for (int i = 0; i < lineNumberDigits.length(); i++)
+			{
+				digits.append('0');	
+			}
+			lineNumberWidth = font.getStringBounds(digits.toString(), frc).getWidth();
+		}
+		
+		// calculate tab size
+		int tabSize = jEdit.getIntegerProperty("print.tabSize", 4);
+		StringBuilder tabs = new StringBuilder();
+
+=====================================================================
+Found a 26 line (91 tokens) duplication in the following files: 
+Starting at line 1017 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2357 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3034 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3067 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3196 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3395 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case BOOLEAN:
+      case BYTE:
+      case CHAR:
+      case DOUBLE:
+      case FALSE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NEW:
+      case NULL:
+      case SHORT:
+      case TRUE:
+      case VOID:
+      case INTEGER_LITERAL:
+      case FLOATING_POINT_LITERAL:
+      case CHARACTER_LITERAL:
+      case STRING_LITERAL:
+      case IDENTIFIER:
+      case LPAREN:
+      case BANG:
+      case TILDE:
+      case INCR:
+      case DECR:
+      case PLUS:
+      case MINUS:
+
+=====================================================================
+Found a 23 line (91 tokens) duplication in the following files: 
+Starting at line 422 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java
+Starting at line 348 of /Users/aleen/SWE439/jEdit/org/jedit/options/OptionGroupPane.java
+
+	} //}}}
+
+	//{{{ save() method
+	private void save(Object obj)
+	{
+		if(obj instanceof OptionGroup)
+		{
+			OptionGroup grp = (OptionGroup)obj;
+			Enumeration<Object> members = grp.getMembers();
+			while(members.hasMoreElements())
+			{
+				save(members.nextElement());
+			}
+		}
+		else if(obj instanceof OptionPane)
+		{
+			try
+			{
+				((OptionPane)obj).save();
+			}
+			catch(Throwable t)
+			{
+				Log.log(Log.ERROR,this,"Error saving options:", t);
+
+=====================================================================
+Found a 25 line (90 tokens) duplication in the following files: 
+Starting at line 1390 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/PrinterDialog.java
+Starting at line 1432 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/PrinterDialog.java
+
+        private float[] getMinimumMargins()
+        {
+
+            // get the printable area for the selected paper size and orientation
+            int units = getUnits();
+            boolean integerOnly = units == MediaPrintableArea.MM;
+            MediaPrintableArea supportedArea = getSupportedPrintableArea();
+
+            // Log.log( Log.DEBUG, this, "supportedArea = " + supportedArea.getX( units ) + ", " + supportedArea.getY( units ) + ", " + supportedArea.getWidth( units ) + ", " + supportedArea.getHeight( units ) );
+            // get the selected paper size
+            Media media = paperSizes.get( paperSize.getSelectedIndex() );
+
+            // get paper width and height
+            MediaSize mediaSize = null;
+            if ( media instanceof MediaSizeName )
+            {
+                MediaSizeName name = ( MediaSizeName )media;
+                mediaSize = MediaSize.getMediaSizeForName( name );
+            }
+
+            float paperWidth = mediaSize.getX( units );
+            float paperHeight = mediaSize.getY( units );
+
+            // calculate the default margins
+            float topMargin = supportedArea.getY( units );
+
+=====================================================================
+Found a 11 line (89 tokens) duplication in the following files: 
+Starting at line 1362 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+Starting at line 1403 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+
+	public String getVisibleLineText(int screenLine)
+	{
+		int offset = -getHorizontalOffset();
+		ChunkCache.LineInfo lineInfo = chunkCache.getLineInfo(screenLine);
+		if (lineInfo.physicalLine == -1)
+			return "";
+		int lineStartOffset = getLineStartOffset(lineInfo.physicalLine);
+		Point point = offsetToXY(lineStartOffset + lineInfo.offset);
+		int begin = xyToOffset(offset + point.x, point.y);
+		int end = xyToOffset(getPainter().getWidth(), point.y);
+		return buffer.getText(begin, end - begin);
+
+=====================================================================
+Found a 23 line (87 tokens) duplication in the following files: 
+Starting at line 1682 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1792 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+        t = jj_consume_token(MINUS);
+        break;
+      default:
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      UnaryExpression();
+      BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
+      boolean jjtc001 = true;
+      jjtree.openNodeScope(jjtn001);
+      jjtreeOpenNodeScope(jjtn001);
+      try {
+      jjtree.closeNodeScope(jjtn001,  1);
+      jjtc001 = false;
+      jjtreeCloseNodeScope(jjtn001);
+      jjtn001.kind = t.kind;
+      } finally {
+      if (jjtc001) {
+        jjtree.closeNodeScope(jjtn001,  1);
+        jjtreeCloseNodeScope(jjtn001);
+      }
+      }
+      break;
+
+=====================================================================
+Found a 21 line (87 tokens) duplication in the following files: 
+Starting at line 221 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable.java
+Starting at line 403 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/print/BufferPrintable1_7.java
+
+		double pageX = pageFormat.getImageableX();
+		double pageY = pageFormat.getImageableY();
+		double pageWidth = pageFormat.getImageableWidth();
+		double pageHeight = pageFormat.getImageableHeight();
+
+		//Log.log(Log.DEBUG,this,"#1 - Page dimensions: " + pageWidth + 'x' + pageHeight);
+
+		if(header)
+		{
+			double headerHeight = paintHeader(gfx,pageX,pageY,pageWidth,
+				actuallyPaint);
+			pageY += headerHeight;
+			pageHeight -= headerHeight;
+		}
+
+		if(footer)
+		{
+			double footerHeight = paintFooter(gfx,pageX,pageY,pageWidth,
+				pageHeight,pageIndex,actuallyPaint);
+			pageHeight -= footerHeight;
+		}
+
+=====================================================================
+Found a 30 line (86 tokens) duplication in the following files: 
+Starting at line 2132 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/Buffer.java
+Starting at line 2178 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/Buffer.java
+
+					setNewFile(false);
+					return false;
+				}
+			}
+			catch(IOException io)
+			{
+				VFSManager.error(view,path,"ioerror",
+					new String[] { io.toString() });
+				return false;
+			}
+			finally
+			{
+				try
+				{
+					vfs._endVFSSession(session,view);
+				}
+				catch(IOException io)
+				{
+					VFSManager.error(view,path,"ioerror",
+						new String[] { io.toString() });
+					return false;
+				}
+			}
+		}
+
+		return true;
+	} //}}}
+
+	//{{{ checkFileForSave() method
+	private static boolean checkFileForSave(View view, VFS vfs, String path)
+
+=====================================================================
+Found a 14 line (86 tokens) duplication in the following files: 
+Starting at line 1339 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/org/objectweb/asm/CodeWriter.java
+Starting at line 1481 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/org/objectweb/asm/CodeWriter.java
+
+            u += 1;
+            break;
+          case ClassWriter.LABEL_INSN:
+            if (opcode > 201) {
+              // converts temporary opcodes 202 to 217 (inclusive), 218 and 219
+              // to IFEQ ... JSR (inclusive), IFNULL and IFNONNULL
+              opcode = opcode < 218 ? opcode - 49 : opcode - 20;
+              label = u + readUnsignedShort(b, u + 1);
+            } else {
+              label = u + readShort(b, u + 1);
+            }
+            newOffset = getNewOffset(allIndexes, allSizes, u, label);
+            if (newOffset < Short.MIN_VALUE || newOffset > Short.MAX_VALUE) {
+              if (!resize[u]) {
+
+=====================================================================
+Found a 17 line (86 tokens) duplication in the following files: 
+Starting at line 4164 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+Starting at line 6140 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+
+	public void rangeComment()
+	{
+		String commentStart = buffer.getContextSensitiveProperty(caret,"commentStart");
+		String commentEnd = buffer.getContextSensitiveProperty(caret,"commentEnd");
+		if(!buffer.isEditable() || commentStart == null || commentEnd == null
+			|| commentStart.isEmpty() || commentEnd.isEmpty())
+		{
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
+			return;
+		}
+
+		commentStart += ' ';
+		commentEnd = ' ' + commentEnd;
+
+		try
+		{
+			buffer.beginCompoundEdit();
+
+=====================================================================
+Found a 18 line (85 tokens) duplication in the following files: 
+Starting at line 1266 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/GUIUtilities.java
+Starting at line 1287 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/GUIUtilities.java
+
+			public void componentMoved(ComponentEvent evt)
+			{
+				if(System.currentTimeMillis() - start < 1000L)
+				{
+					Rectangle r = win.getBounds();
+					if(!windowOpened && r.equals(required))
+						return;
+
+					if(!r.equals(desired))
+					{
+						Log.log(Log.DEBUG,GUIUtilities.class,
+							"Window resize blocked: " + win.getBounds());
+						win.setBounds(desired);
+					}
+				}
+
+				win.removeComponentListener(this);
+			} //}}}
+
+=====================================================================
+Found a 28 line (81 tokens) duplication in the following files: 
+Starting at line 543 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3396 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    case BOOLEAN:
+    case BYTE:
+    case CHAR:
+    case DOUBLE:
+    case FALSE:
+    case FLOAT:
+    case INT:
+    case LONG:
+    case NEW:
+    case NULL:
+    case SHORT:
+    case TRUE:
+    case VOID:
+    case INTEGER_LITERAL:
+    case FLOATING_POINT_LITERAL:
+    case CHARACTER_LITERAL:
+    case STRING_LITERAL:
+    case IDENTIFIER:
+    case LPAREN:
+    case BANG:
+    case TILDE:
+    case INCR:
+    case DECR:
+    case PLUS:
+    case MINUS:
+      Expression();
+      break;
+    default:
+
+=====================================================================
+Found a 18 line (81 tokens) duplication in the following files: 
+Starting at line 136 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/HistoryText.java
+Starting at line 167 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/HistoryText.java
+
+		for(int i = index + 1; i < historyModel.getSize(); i++)
+		{
+			String item = historyModel.getItem(i);
+			if(item.startsWith(t))
+			{
+				text.replaceSelection(item.substring(t.length()));
+				text.select(getInputStart() + t.length(),
+					getDocument().getLength());
+				index = i;
+				return;
+			}
+		}
+
+		javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
+	} //}}}
+
+	//{{{ doForwardSearch() method
+	public void doForwardSearch()
+
+=====================================================================
+Found a 17 line (81 tokens) duplication in the following files: 
+Starting at line 50 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+Starting at line 148 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+
+		case KeyEvent.VK_META:
+		case KeyEvent.VK_DEAD_GRAVE:
+		case KeyEvent.VK_DEAD_ACUTE:
+		case KeyEvent.VK_DEAD_CIRCUMFLEX:
+		case KeyEvent.VK_DEAD_TILDE:
+		case KeyEvent.VK_DEAD_MACRON:
+		case KeyEvent.VK_DEAD_BREVE:
+		case KeyEvent.VK_DEAD_ABOVEDOT:
+		case KeyEvent.VK_DEAD_DIAERESIS:
+		case KeyEvent.VK_DEAD_ABOVERING:
+		case KeyEvent.VK_DEAD_DOUBLEACUTE:
+		case KeyEvent.VK_DEAD_CARON:
+		case KeyEvent.VK_DEAD_CEDILLA:
+		case KeyEvent.VK_DEAD_OGONEK:
+		case KeyEvent.VK_DEAD_IOTA:
+		case KeyEvent.VK_DEAD_VOICED_SOUND:
+		case KeyEvent.VK_DEAD_SEMIVOICED_SOUND:
+
+=====================================================================
+Found a 11 line (79 tokens) duplication in the following files: 
+Starting at line 758 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/PluginJAR.java
+Starting at line 782 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/PluginJAR.java
+
+	public static Set<String> getDependencies(String classname) throws IllegalArgumentException
+	{
+		var ret = new HashSet<String>();
+		int i = 0;
+		String dep;
+		while((dep = jEdit.getProperty("plugin." + classname + ".depend." + i++)) != null)
+		{
+			int index = dep.indexOf(' ');
+			String what = dep.substring(0,index);
+			String arg = dep.substring(index + 1);
+			if ("plugin".equals(what))
+
+=====================================================================
+Found a 25 line (79 tokens) duplication in the following files: 
+Starting at line 162 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/HistoryTextArea.java
+Starting at line 279 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/HistoryTextField.java
+
+						evt.isShiftDown());
+					evt.consume();
+				}
+				break;
+			case KeyEvent.VK_CONTEXT_MENU:
+				controller.showPopupMenu(evt.isShiftDown());
+				evt.consume();
+				break;
+			}
+		}
+
+		if(!evt.isConsumed())
+			super.processKeyEvent(evt);
+	} //}}}
+
+	//{{{ processMouseEvent() method
+	@Override
+	protected void processMouseEvent(MouseEvent evt)
+	{
+		if(!isEnabled())
+			return;
+
+		switch(evt.getID())
+		{
+		case MouseEvent.MOUSE_PRESSED:
+
+=====================================================================
+Found a 27 line (78 tokens) duplication in the following files: 
+Starting at line 541 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2576 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      ArrayInitializer();
+      break;
+    case BOOLEAN:
+    case BYTE:
+    case CHAR:
+    case DOUBLE:
+    case FALSE:
+    case FLOAT:
+    case INT:
+    case LONG:
+    case NEW:
+    case NULL:
+    case SHORT:
+    case TRUE:
+    case VOID:
+    case INTEGER_LITERAL:
+    case FLOATING_POINT_LITERAL:
+    case CHARACTER_LITERAL:
+    case STRING_LITERAL:
+    case IDENTIFIER:
+    case LPAREN:
+    case BANG:
+    case TILDE:
+    case INCR:
+    case DECR:
+    case PLUS:
+    case MINUS:
+
+=====================================================================
+Found a 26 line (78 tokens) duplication in the following files: 
+Starting at line 543 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3035 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    case BOOLEAN:
+    case BYTE:
+    case CHAR:
+    case DOUBLE:
+    case FALSE:
+    case FLOAT:
+    case INT:
+    case LONG:
+    case NEW:
+    case NULL:
+    case SHORT:
+    case TRUE:
+    case VOID:
+    case INTEGER_LITERAL:
+    case FLOATING_POINT_LITERAL:
+    case CHARACTER_LITERAL:
+    case STRING_LITERAL:
+    case IDENTIFIER:
+    case LPAREN:
+    case BANG:
+    case TILDE:
+    case INCR:
+    case DECR:
+    case PLUS:
+    case MINUS:
+      Expression();
+
+=====================================================================
+Found a 22 line (78 tokens) duplication in the following files: 
+Starting at line 1015 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1817 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3194 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      Assignment();
+    } else {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case BOOLEAN:
+      case BYTE:
+      case CHAR:
+      case DOUBLE:
+      case FALSE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NEW:
+      case NULL:
+      case SHORT:
+      case TRUE:
+      case VOID:
+      case INTEGER_LITERAL:
+      case FLOATING_POINT_LITERAL:
+      case CHARACTER_LITERAL:
+      case STRING_LITERAL:
+      case IDENTIFIER:
+      case LPAREN:
+
+=====================================================================
+Found a 13 line (78 tokens) duplication in the following files: 
+Starting at line 84 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/AddModeDialog.java
+Starting at line 246 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/gui/FontSelectorDialog.java
+
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
+		cancel.addActionListener(e -> cancel());
+		GenericGUIUtilities.makeSameSize(ok, cancel);
+
+		buttons.add(Box.createGlue());
+		buttons.add(ok);
+		buttons.add(Box.createHorizontalStrut(6));
+		buttons.add(cancel);
+
+		content.add(BorderLayout.SOUTH, buttons);
+
+		pack();
+		setLocationRelativeTo(view);
+
+=====================================================================
+Found a 26 line (78 tokens) duplication in the following files: 
+Starting at line 1338 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/pluginmgr/InstallPanel.java
+Starting at line 1331 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/pluginmgr/ManagePanel.java
+
+		}
+	} //}}}
+
+	//{{{ KeyboardAction class
+	private class KeyboardAction extends AbstractAction
+	{
+		private final KeyboardCommand command;
+
+		KeyboardAction(KeyboardCommand command)
+		{
+			this.command = command;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent evt)
+		{
+			switch (command)
+			{
+			case TAB_OUT_FORWARD:
+				KeyboardFocusManager.getCurrentKeyboardFocusManager().focusNextComponent();
+				break;
+			case TAB_OUT_BACK:
+				KeyboardFocusManager.getCurrentKeyboardFocusManager().focusPreviousComponent();
+				break;
+			case EDIT_PLUGIN:
+				int[] rows = table.getSelectedRows();
+
+=====================================================================
+Found a 21 line (76 tokens) duplication in the following files: 
+Starting at line 1016 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1933 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3195 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    } else {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case BOOLEAN:
+      case BYTE:
+      case CHAR:
+      case DOUBLE:
+      case FALSE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NEW:
+      case NULL:
+      case SHORT:
+      case TRUE:
+      case VOID:
+      case INTEGER_LITERAL:
+      case FLOATING_POINT_LITERAL:
+      case CHARACTER_LITERAL:
+      case STRING_LITERAL:
+      case IDENTIFIER:
+      case LPAREN:
+
+=====================================================================
+Found a 20 line (76 tokens) duplication in the following files: 
+Starting at line 1742 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1763 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    t = jj_consume_token(INCR);
+    PrimaryExpression();
+      BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
+      boolean jjtc001 = true;
+      jjtree.openNodeScope(jjtn001);
+      jjtreeOpenNodeScope(jjtn001);
+    try {
+      jjtree.closeNodeScope(jjtn001,  1);
+      jjtc001 = false;
+      jjtreeCloseNodeScope(jjtn001);
+      jjtn001.kind = t.kind;
+    } finally {
+      if (jjtc001) {
+        jjtree.closeNodeScope(jjtn001,  1);
+        jjtreeCloseNodeScope(jjtn001);
+      }
+    }
+  }
+
+  final public void PreDecrementExpression() throws ParseException {
+
+=====================================================================
+Found a 21 line (76 tokens) duplication in the following files: 
+Starting at line 1818 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1933 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      } else {
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case BOOLEAN:
+        case BYTE:
+        case CHAR:
+        case DOUBLE:
+        case FALSE:
+        case FLOAT:
+        case INT:
+        case LONG:
+        case NEW:
+        case NULL:
+        case SHORT:
+        case TRUE:
+        case VOID:
+        case INTEGER_LITERAL:
+        case FLOATING_POINT_LITERAL:
+        case CHARACTER_LITERAL:
+        case STRING_LITERAL:
+        case IDENTIFIER:
+        case LPAREN:
+
+=====================================================================
+Found a 25 line (75 tokens) duplication in the following files: 
+Starting at line 543 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1018 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2358 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2578 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3035 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3068 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3197 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3396 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+    case BOOLEAN:
+    case BYTE:
+    case CHAR:
+    case DOUBLE:
+    case FALSE:
+    case FLOAT:
+    case INT:
+    case LONG:
+    case NEW:
+    case NULL:
+    case SHORT:
+    case TRUE:
+    case VOID:
+    case INTEGER_LITERAL:
+    case FLOATING_POINT_LITERAL:
+    case CHARACTER_LITERAL:
+    case STRING_LITERAL:
+    case IDENTIFIER:
+    case LPAREN:
+    case BANG:
+    case TILDE:
+    case INCR:
+    case DECR:
+    case PLUS:
+    case MINUS:
+
+=====================================================================
+Found a 22 line (75 tokens) duplication in the following files: 
+Starting at line 583 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 2356 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3033 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3066 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 3394 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      jj_consume_token(LBRACE);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case BOOLEAN:
+      case BYTE:
+      case CHAR:
+      case DOUBLE:
+      case FALSE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NEW:
+      case NULL:
+      case SHORT:
+      case TRUE:
+      case VOID:
+      case INTEGER_LITERAL:
+      case FLOATING_POINT_LITERAL:
+      case CHARACTER_LITERAL:
+      case STRING_LITERAL:
+      case IDENTIFIER:
+      case LPAREN:
+      case LBRACE:
+
+=====================================================================
+Found a 20 line (75 tokens) duplication in the following files: 
+Starting at line 1205 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1248 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1291 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1323 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1366 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1409 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1504 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1563 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1606 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+Starting at line 1653 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/Parser.java
+
+      ConditionalAndExpression();
+      BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+      boolean jjtc001 = true;
+      jjtree.openNodeScope(jjtn001);
+      jjtreeOpenNodeScope(jjtn001);
+      try {
+      jjtree.closeNodeScope(jjtn001,  2);
+      jjtc001 = false;
+      jjtreeCloseNodeScope(jjtn001);
+      jjtn001.kind = t.kind;
+      } finally {
+      if (jjtc001) {
+        jjtree.closeNodeScope(jjtn001,  2);
+        jjtreeCloseNodeScope(jjtn001);
+      }
+      }
+    }
+  }
+
+  final public void ConditionalAndExpression() throws ParseException {
+
+=====================================================================
+Found a 19 line (75 tokens) duplication in the following files: 
+Starting at line 860 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/org/objectweb/asm/CodeWriter.java
+Starting at line 891 of /Users/aleen/SWE439/jEdit/org/gjt/sp/jedit/bsh/org/objectweb/asm/CodeWriter.java
+
+    final Label dflt,
+    final Label labels[])
+  {
+    if (computeMaxs) {
+      // updates current stack size (max stack size unchanged)
+      --stackSize;
+      // ends current block (with many new successors)
+      if (currentBlock != null) {
+        currentBlock.maxStackSize = maxStackSize;
+        addSuccessor(stackSize, dflt);
+        for (int i = 0; i < labels.length; ++i) {
+          addSuccessor(stackSize, labels[i]);
+        }
+        currentBlock = null;
+      }
+    }
+    // adds the instruction to the bytecode of the method
+    int source = code.length;
+    code.put1(Constants.TABLESWITCH);
+
